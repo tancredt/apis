@@ -169,6 +169,7 @@ class Detector(models.Model):
     purchase_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     location = models.ForeignKey(Location, on_delete=models.PROTECT, related_name="detectors")
     detector_model = models.ForeignKey(DetectorModel, on_delete=models.PROTECT, related_name="detectors")
+    firmware = models.CharField(max_length=8, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
