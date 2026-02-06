@@ -1,0 +1,6 @@
+apis/__pycache__/
+db.sqlite3
+inventory/__pycache__/
+inventory/migrations/
+inventory/management/__pycache__/
+inventory/management/commands/__pycache__/
