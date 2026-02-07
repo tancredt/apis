@@ -16,7 +16,7 @@ class Manufacturer(models.TextChoices):
     MSA = "MS", "MSA"
     DRAEGER = "DR", "Draeger"
     PROENGIN = "PR", "Proengin"
-    THERMO = "TS", "Thermo Scientific"
+    THERMO = "TH", "Thermo Scientific"
     SMITHS = "SM", "Smiths"
     INFICON = "IN", "Inficon"
     MIRION = "MI", "Mirion"
