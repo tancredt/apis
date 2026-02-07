@@ -234,7 +234,7 @@ class DetectorFault(models.Model):
         return f"{self.detector.label} - {self.get_fault_type_display()} ({self.report_dt.strftime('%Y-%m-%d %H:%M')})"
     
 class Maintenance(models.Model):
-    maintenance_type = models.CharField(max_length=2, choices=MaintenanceType.choices, default=MaintenanceType.MAJSERVICE)
+    maintenance_type = models.CharField(max_length=2, choices=MaintenanceType.choices, default=MaintenanceType.RSERVICE)
     status = models.CharField(max_length=2, choices=MaintenanceStatus.choices, default=MaintenanceStatus.OPEN)
     detector = models.ForeignKey(Detector, on_delete=models.PROTECT, related_name="maintenance")
     date_due = models.DateField()
