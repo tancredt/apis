@@ -21,7 +21,7 @@ class Manufacturer(models.TextChoices):
     INFICON = "IN", "Inficon"
     MIRION = "MI", "Mirion"
     CANBERRA = "CB", "Canberra"
-    PRINCETON = "PR", "Princeton Electronics"
+    PRINCETON = "PI", "Princeton Electronics"
     AUTOMESS = "AU", "Automess"
     TSI = "TS", "TSI"
     
