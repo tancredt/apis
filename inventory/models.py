@@ -6,7 +6,10 @@ class LocationType(models.TextChoices):
     STATION = "ST", "Station"
     APPLIANCE = "AP", "Appliance"
     DISTRICT_OFFICE = "DI", "District Office"
+    WORK_GROUP = "WG", "Work Group"
     WAREHOUSE = "WA", "Warehouse"
+    WORKSHOP = "WK", "Workshop"
+    
     
 class Manufacturer(models.TextChoices):
     HONEYWELL = "HW", "Honeywell/Rae"
@@ -14,18 +17,37 @@ class Manufacturer(models.TextChoices):
     DRAEGER = "DR", "Draeger"
     PROENGIN = "PR", "Proengin"
     THERMO = "TS", "Thermo Scientific"
-
+    SMITHS = "SM", "Smiths"
+    INFICON = "IN", "Inficon"
+    MIRION = "MI", "Mirion"
+    CANBERRA = "CB", "Canberra"
+    PRINCETON = "PR", "Princeton Electronics"
+    AUTOMESS = "AU", "Automess"
+    TSI = "TS", "TSI"
+    
 class DetectorType(models.TextChoices):
     PID = "PI", "PID"
     FID = "FI", "FID"
     PUMPED_MULTI = "PM", "Pumped Multi Sensor"
     PERSONAL_MULTI = "NM", "Personal Multi Sensor"
-
+    AREA_MONITOR = "AM", "Area Monitor"
+    PARTICULATE_DETECTOR = "PD", "Particulate"
+    DOSIMETER = "DI", "DOSIMETER"
+    DOSERATE_METER = "DO", "Doserate Meter"
+    SURVEY_METER = "SM", "Survey Meter"
+    ION_MOBILITY_SPECTROMETER = "IM", "IMS"
+    FPD = "FP", "FPD"
+    CALIBRATION_DOCK = "CD", "Calibration Dock"
+    CALIBRATION_CRADLE = "CC", "Calibration Cradle"
+    
 class Supplier(models.TextChoices):
     AIRMET = "AM", "AirMet"
     AES = "AE", "AES"
     MSA = "MS", "MSA"
     DRAEGER = "DR", "Draeger"
+    WARSACH = "WS", "WARSACH"
+    CAC = "CA", "CAC"
+    
 
 class DetectorStatus(models.TextChoices):
     ONORDER = "OO", "On Order"
@@ -36,20 +58,21 @@ class DetectorStatus(models.TextChoices):
 
 class MaintenanceType(models.TextChoices):
     #major service is like the 6 monthly
-    MAJSERVICE = "SV", "Major Service"
+    RSERVICE = "SV", "Scheduled Service"
     #minor service would be the result of a fault report
-    MINSERVICE = "MS", "Minor Service"
+    USERVICE = "MS", "Unscheduled Service"
     BATTERY = "BT", "Battery Replacement"
     FILTER = "FC", "Filter Replacement"
-    
+    DESSICANT = "DR", "Dessicant Replacement"
 class MaintenanceTaskType(models.TextChoices):
     CALIBRATION = "CB", "Calibration"
     BUMP = "BM", "Bump"
-    SENSOR = "SN", "Sensor Checks"
-    DISPLAY = "DS", "Display Checks"
-    LABEL = "LB", "Labelling Checks"
+    SENSOR = "SN", "Sensor Replacement"
+    DISPLAY = "DS", "Display Replacement"
+    LABEL = "LB", "Label Replacement"
     BATTERY = "BT", "Battery Replacement"
     FILTER = "FC", "Filter Replacement"
+    BOARD = "BD", "Board Replacement"
     REPAIR = "RP", "Repair"
     #carabiners, etc.
     ATTACHMENT = "AT", "Attachment Replacement"
@@ -57,11 +80,11 @@ class MaintenanceTaskType(models.TextChoices):
 class MaintenanceStatus(models.TextChoices):
     SCHEDULED = "SC", "Scheduled"
     OPEN = "OP", "Open"
-    COMPLETE = "CP", "Complete"
+    CLOSED = "CL", "Closed"
 
 class DetectorFaultStatus(models.TextChoices):
     OPEN = "OP", "Open"
-    COMPLETE = "CP", "Complete"
+    CLOSED = "CL", "Closed"
 
 class CylinderFaultStatus(models.TextChoices):
     OPEN = "OP", "Open"
