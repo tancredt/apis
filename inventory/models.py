@@ -106,7 +106,13 @@ class CylinderGas(models.TextChoices):
     ISOBUTYLENE = "IB", "Isobutylene"
     HCN = "HC", "HCN"
     N2 = "N2", "N2"
-
+    CL2 = "CL", "Cl2"
+    PH3 = "PH", "PH3"
+    SO2 = "SO", "SO2"
+    NO2 = "NO", "NO2"
+    CO2 = "C2", "CO2"
+    NH3 = "NH", "NH3"
+    
 class SensorGas(models.TextChoices):
     CO = "CO", "CO"
     H2S = "HS", "H2S"
@@ -114,7 +120,13 @@ class SensorGas(models.TextChoices):
     O2 = "O2", "O2"
     VOC = "VO", "VOC"
     HCN = "HC", "HCN"
-
+    CL2 = "CL", "Cl2"
+    PH3 = "PH", "PH3"
+    SO2 = "SO", "SO2"
+    NO2 = "NO", "NO2"
+    CO2 = "C2", "CO2"
+    NH3 = "NH", "NH3"
+    
 class CylinderVolume(models.TextChoices):
     L34 = "L034", "34 L"
     L65 = "L065", "65 L"
@@ -145,7 +157,7 @@ class Location(models.Model):
     label = models.CharField(max_length=16, unique=True)
     address = models.CharField(max_length=256, blank=True)
     location_type = models.CharField(max_length=2, choices=LocationType.choices, default=LocationType.STATION)
-    station = models.CharField(max_length=32)
+    station = models.CharField(max_length=32, default="N/A")
     priority = models.PositiveSmallIntegerField(default=1)
     
     class Meta:
