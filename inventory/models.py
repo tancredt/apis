@@ -157,7 +157,7 @@ class Location(models.Model):
     label = models.CharField(max_length=16, unique=True)
     address = models.CharField(max_length=256, blank=True)
     location_type = models.CharField(max_length=2, choices=LocationType.choices, default=LocationType.STATION)
-    station = models.CharField(max_length=32, blank=True, null=True)
+    station = models.CharField(max_length=32, default="N/A")
     priority = models.PositiveSmallIntegerField(default=1)
     
     class Meta:
