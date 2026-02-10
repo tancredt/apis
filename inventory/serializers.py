@@ -248,6 +248,16 @@ class LocationDetectorSlotsSerializer(serializers.ModelSerializer):
         model = LocationDetectorSlots
         fields = "__all__"
 
+
+class ChangeDetectorLocationSerializer(serializers.Serializer):
+    detector_id = serializers.IntegerField()
+    location_id = serializers.IntegerField()
+
+
+class ChangeCylinderLocationSerializer(serializers.Serializer):
+    cylinder_id = serializers.IntegerField()
+    location_id = serializers.IntegerField()
+
 class CylinderFaultSerializer(serializers.ModelSerializer):
     report_dt = serializers.DateTimeField(read_only=True)
     resolve_dt = serializers.DateField(allow_null=True, required=False)

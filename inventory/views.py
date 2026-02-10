@@ -257,6 +257,82 @@ class SensorSlotViewSet(viewsets.ModelViewSet):
     queryset = SensorSlot.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = SensorSlotFilter
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
+from .models import Detector, Cylinder, Location
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_detector_location(request):
+    serializer = ChangeDetectorLocationSerializer(data=request.data)
+    if serializer.is_valid():
+        detector_id = serializer.validated_data['detector_id']
+        location_id = serializer.validated_data['location_id']
+        
+        detector = get_object_or_404(Detector, id=detector_id)
+        location = get_object_or_404(Location, id=location_id)
+        
+        # Update the detector's location
+        detector.location = location
+        detector.save()
+        
+        return Response({
+            'success': True,
+            'message': 'Detector location updated successfully',
+            'detector': {
+                'id': detector.id,
+                'label': detector.label,
+                'location': {
+                    'id': location.id,
+                    'label': location.label
+                }
+            }
+        }, status=status.HTTP_200_OK)
+    else:
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_cylinder_location(request):
+    serializer = ChangeCylinderLocationSerializer(data=request.data)
+    if serializer.is_valid():
+        cylinder_id = serializer.validated_data['cylinder_id']
+        location_id = serializer.validated_data['location_id']
+        
+        cylinder = get_object_or_404(Cylinder, id=cylinder_id)
+        location = get_object_or_404(Location, id=location_id)
+        
+        # Update the cylinder's location
+        cylinder.location = location
+        cylinder.save()
+        
+        return Response({
+            'success': True,
+            'message': 'Cylinder location updated successfully',
+            'cylinder': {
+                'id': cylinder.id,
+                'cylinder_number': cylinder.cylinder_number,
+                'location': {
+                    'id': location.id,
+                    'label': location.label
+                }
+            }
+        }, status=status.HTTP_200_OK)
+    else:
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
     
 class DetectorModelConfigurationViewSet(viewsets.ModelViewSet):
     serializer_class = DetectorModelConfigurationSerializer

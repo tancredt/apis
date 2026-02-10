@@ -33,6 +33,7 @@ from .views import (
     SensorGasView
 )
 from .views_auth import LoginView, LogoutView, CurrentUserView, CsrfTokenView
+from .views import change_detector_location, change_cylinder_location
 
 router = routers.SimpleRouter()
 router.register(r'locations', LocationViewSet)
@@ -70,4 +71,6 @@ urlpatterns = [
     path('auth/logout/', LogoutView.as_view(), name='api-logout'),
     path('auth/current-user/', CurrentUserView.as_view(), name='current-user'),
     path('csrf-token/', CsrfTokenView.as_view(), name='csrf-token'),
+    path('change-detector-location/', change_detector_location, name='change-detector-location'),
+    path('change-cylinder-location/', change_cylinder_location, name='change-cylinder-location'),
 ]
