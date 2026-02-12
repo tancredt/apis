@@ -206,6 +206,7 @@ class Detector(models.Model):
     location = models.ForeignKey(Location, on_delete=models.PROTECT, related_name="detectors")
     detector_model = models.ForeignKey(DetectorModel, on_delete=models.PROTECT, related_name="detectors")
     firmware = models.CharField(max_length=8, null=True)
+    notes = models.TextField(blank=True, null=True)  # Additional notes about the detector
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     location_updated = models.DateTimeField(auto_now_add=True)  # Track when location was last updated
