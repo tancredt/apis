@@ -111,7 +111,7 @@ class DetectorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Detector
         fields = "__all__"
-        read_only_fields = []
+        read_only_fields = ['location_updated']
 
     def validate(self, attrs):
         # Get the instance if this is an update operation
@@ -257,20 +257,6 @@ class ChangeDetectorLocationSerializer(serializers.Serializer):
 class ChangeCylinderLocationSerializer(serializers.Serializer):
     cylinder_id = serializers.IntegerField()
     location_id = serializers.IntegerField()
-
-
-class ComplexChangeDetectorLocationSerializer(serializers.Serializer):
-    outgoing_detector_id = serializers.IntegerField()
-    outgoing_location_id = serializers.IntegerField()
-    returning_detector_id = serializers.IntegerField()
-    returning_location_id = serializers.IntegerField()
-
-
-class ComplexChangeCylinderLocationSerializer(serializers.Serializer):
-    outgoing_cylinder_id = serializers.IntegerField()
-    outgoing_location_id = serializers.IntegerField()
-    returning_cylinder_id = serializers.IntegerField()
-    returning_location_id = serializers.IntegerField()
 
 class CylinderFaultSerializer(serializers.ModelSerializer):
     report_dt = serializers.DateTimeField(read_only=True)

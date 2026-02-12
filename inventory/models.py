@@ -208,7 +208,8 @@ class Detector(models.Model):
     firmware = models.CharField(max_length=8, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+    location_updated = models.DateTimeField(auto_now_add=True)  # Track when location was last updated
+
     class Meta:
         ordering = ["label"]
         indexes = [
@@ -216,6 +217,16 @@ class Detector(models.Model):
             models.Index(fields=["detector_model"]),
             models.Index(fields=["location"]),
         ]
+
+    def save(self, *args, **kwargs):
+        # Check if this is an update and location has changed
+        if self.pk:
+            original = Detector.objects.get(pk=self.pk)
+            if original.location != self.location:
+                # Location has changed, update location_updated field
+                from django.utils import timezone
+                self.location_updated = timezone.now()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.label} {self.serial or ''}".strip()
