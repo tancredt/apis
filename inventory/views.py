@@ -63,7 +63,10 @@ from .serializers import (
     CylinderVolumeChoiceSerializer,
     CylinderStatusChoiceSerializer,
     SensorStatusChoiceSerializer,
-    SensorGasChoiceSerializer
+    SensorGasChoiceSerializer,
+    ChangeDetectorLocationSerializer,
+    ChangeCylinderLocationSerializer
+
 )
 
 from .filters import (
@@ -270,69 +273,167 @@ from .models import Detector, Cylinder, Location
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def change_detector_location(request):
-    serializer = ChangeDetectorLocationSerializer(data=request.data)
-    if serializer.is_valid():
-        detector_id = serializer.validated_data['detector_id']
-        location_id = serializer.validated_data['location_id']
-        
-        detector = get_object_or_404(Detector, id=detector_id)
-        location = get_object_or_404(Location, id=location_id)
-        
-        # Update the detector's location
-        detector.location = location
-        detector.save()
-        
-        return Response({
-            'success': True,
-            'message': 'Detector location updated successfully',
-            'detector': {
-                'id': detector.id,
-                'label': detector.label,
-                'location': {
-                    'id': location.id,
-                    'label': location.label
+    # Check if the request is for the complex workflow
+    if 'outgoing_detector_id' in request.data:
+        serializer = ComplexChangeDetectorLocationSerializer(data=request.data)
+        if serializer.is_valid():
+            outgoing_detector_id = serializer.validated_data['outgoing_detector_id']
+            outgoing_location_id = serializer.validated_data['outgoing_location_id']
+            returning_detector_id = serializer.validated_data['returning_detector_id']
+            returning_location_id = serializer.validated_data['returning_location_id']
+
+            # Get the detectors and locations
+            outgoing_detector = get_object_or_404(Detector, id=outgoing_detector_id)
+            outgoing_location = get_object_or_404(Location, id=outgoing_location_id)
+            returning_detector = get_object_or_404(Detector, id=returning_detector_id)
+            returning_location = get_object_or_404(Location, id=returning_location_id)
+
+            # Update the locations
+            outgoing_detector.location = outgoing_location
+            outgoing_detector.save()
+
+            returning_detector.location = returning_location
+            returning_detector.save()
+
+            return Response({
+                'success': True,
+                'message': 'Detector locations updated successfully',
+                'outgoing_detector': {
+                    'id': outgoing_detector.id,
+                    'label': outgoing_detector.label,
+                    'location': {
+                        'id': outgoing_location.id,
+                        'label': outgoing_location.label
+                    }
+                },
+                'returning_detector': {
+                    'id': returning_detector.id,
+                    'label': returning_detector.label,
+                    'location': {
+                        'id': returning_location.id,
+                        'label': returning_location.label
+                    }
                 }
-            }
-        }, status=status.HTTP_200_OK)
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'success': False,
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
     else:
-        return Response({
-            'success': False,
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+        # Original simple workflow
+        serializer = ChangeDetectorLocationSerializer(data=request.data)
+        if serializer.is_valid():
+            detector_id = serializer.validated_data['detector_id']
+            location_id = serializer.validated_data['location_id']
+
+            detector = get_object_or_404(Detector, id=detector_id)
+            location = get_object_or_404(Location, id=location_id)
+
+            # Update the detector's location
+            detector.location = location
+            detector.save()
+
+            return Response({
+                'success': True,
+                'message': 'Detector location updated successfully',
+                'detector': {
+                    'id': detector.id,
+                    'label': detector.label,
+                    'location': {
+                        'id': location.id,
+                        'label': location.label
+                    }
+                }
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'success': False,
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def change_cylinder_location(request):
-    serializer = ChangeCylinderLocationSerializer(data=request.data)
-    if serializer.is_valid():
-        cylinder_id = serializer.validated_data['cylinder_id']
-        location_id = serializer.validated_data['location_id']
-        
-        cylinder = get_object_or_404(Cylinder, id=cylinder_id)
-        location = get_object_or_404(Location, id=location_id)
-        
-        # Update the cylinder's location
-        cylinder.location = location
-        cylinder.save()
-        
-        return Response({
-            'success': True,
-            'message': 'Cylinder location updated successfully',
-            'cylinder': {
-                'id': cylinder.id,
-                'cylinder_number': cylinder.cylinder_number,
-                'location': {
-                    'id': location.id,
-                    'label': location.label
+    # Check if the request is for the complex workflow
+    if 'outgoing_cylinder_id' in request.data:
+        serializer = ComplexChangeCylinderLocationSerializer(data=request.data)
+        if serializer.is_valid():
+            outgoing_cylinder_id = serializer.validated_data['outgoing_cylinder_id']
+            outgoing_location_id = serializer.validated_data['outgoing_location_id']
+            returning_cylinder_id = serializer.validated_data['returning_cylinder_id']
+            returning_location_id = serializer.validated_data['returning_location_id']
+
+            # Get the cylinders and locations
+            outgoing_cylinder = get_object_or_404(Cylinder, id=outgoing_cylinder_id)
+            outgoing_location = get_object_or_404(Location, id=outgoing_location_id)
+            returning_cylinder = get_object_or_404(Cylinder, id=returning_cylinder_id)
+            returning_location = get_object_or_404(Location, id=returning_location_id)
+
+            # Update the locations
+            outgoing_cylinder.location = outgoing_location
+            outgoing_cylinder.save()
+
+            returning_cylinder.location = returning_location
+            returning_cylinder.save()
+
+            return Response({
+                'success': True,
+                'message': 'Cylinder locations updated successfully',
+                'outgoing_cylinder': {
+                    'id': outgoing_cylinder.id,
+                    'cylinder_number': outgoing_cylinder.cylinder_number,
+                    'location': {
+                        'id': outgoing_location.id,
+                        'label': outgoing_location.label
+                    }
+                },
+                'returning_cylinder': {
+                    'id': returning_cylinder.id,
+                    'cylinder_number': returning_cylinder.cylinder_number,
+                    'location': {
+                        'id': returning_location.id,
+                        'label': returning_location.label
+                    }
                 }
-            }
-        }, status=status.HTTP_200_OK)
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'success': False,
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
     else:
-        return Response({
-            'success': False,
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+        # Original simple workflow
+        serializer = ChangeCylinderLocationSerializer(data=request.data)
+        if serializer.is_valid():
+            cylinder_id = serializer.validated_data['cylinder_id']
+            location_id = serializer.validated_data['location_id']
+
+            cylinder = get_object_or_404(Cylinder, id=cylinder_id)
+            location = get_object_or_404(Location, id=location_id)
+
+            # Update the cylinder's location
+            cylinder.location = location
+            cylinder.save()
+
+            return Response({
+                'success': True,
+                'message': 'Cylinder location updated successfully',
+                'cylinder': {
+                    'id': cylinder.id,
+                    'cylinder_number': cylinder.cylinder_number,
+                    'location': {
+                        'id': location.id,
+                        'label': location.label
+                    }
+                }
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'success': False,
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
     
 class DetectorModelConfigurationViewSet(viewsets.ModelViewSet):
     serializer_class = DetectorModelConfigurationSerializer

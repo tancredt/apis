@@ -258,6 +258,20 @@ class ChangeCylinderLocationSerializer(serializers.Serializer):
     cylinder_id = serializers.IntegerField()
     location_id = serializers.IntegerField()
 
+
+class ComplexChangeDetectorLocationSerializer(serializers.Serializer):
+    outgoing_detector_id = serializers.IntegerField()
+    outgoing_location_id = serializers.IntegerField()
+    returning_detector_id = serializers.IntegerField()
+    returning_location_id = serializers.IntegerField()
+
+
+class ComplexChangeCylinderLocationSerializer(serializers.Serializer):
+    outgoing_cylinder_id = serializers.IntegerField()
+    outgoing_location_id = serializers.IntegerField()
+    returning_cylinder_id = serializers.IntegerField()
+    returning_location_id = serializers.IntegerField()
+
 class CylinderFaultSerializer(serializers.ModelSerializer):
     report_dt = serializers.DateTimeField(read_only=True)
     resolve_dt = serializers.DateField(allow_null=True, required=False)
