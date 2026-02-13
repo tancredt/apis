@@ -86,6 +86,8 @@ from .filters import (
     SensorSlotFilter,
 )
 
+from .permissions import FrvUserRestrictedPermission
+
 # Create your views here.
 ################---Choice Views---#################
 class LocationTypeView(APIView):
@@ -281,7 +283,6 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .models import Detector, Cylinder, Location
-from .permissions import FrvUserRestrictedPermission
 
 
 @api_view(['POST'])
