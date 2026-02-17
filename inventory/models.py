@@ -96,6 +96,10 @@ class DetectorFaultStatus(models.TextChoices):
     OPEN = "OP", "Open"
     CLOSED = "CL", "Closed"
 
+class CylinderFaultStatus(models.TextChoices):
+    OPEN = "OP", "Open"
+    CLOSED = "CL", "Closed"
+    
 class DetectorFaultType(models.TextChoices):
     BUMPFAIL = "BF", "Failed Bump"
     SENSORFAIL = "SF", "Sensor Fail"
@@ -104,6 +108,10 @@ class DetectorFaultType(models.TextChoices):
     DAMAGEDDISPLAY = "DD", "Damaged Display"
     DAMAGEDCASING = "DC", "Damaged Casing"
     MISSINGATTACHMENT = "MA", "Missing Attachment"
+
+class CylinderFaultType(models.TextChoices):
+    MT = "MT", "Empty"
+    EXPIRED = "EX", "Expired"
     
 class CylinderGas(models.TextChoices):
     CO = "CO", "CO"
@@ -373,7 +381,7 @@ class CylinderFault(models.Model):
     reported_by = models.CharField(max_length=32)
     report_location = models.ForeignKey(Location, on_delete=models.CASCADE)
     status = models.CharField(max_length=2, choices=CylinderFaultStatus.choices, default="OP")
-    fault_type = models.CharField(max_length=2, choices=DetectorFaultType.choices, default=DetectorFaultType.BUMPFAIL)
+    fault_type = models.CharField(max_length=2, choices=CylinderFaultType.choices, default=CylinderFaultType.MT)
     submit_notes = models.TextField(blank=True)
     resolved_by = models.CharField(max_length=16, blank=True)
     resolve_dt = models.DateTimeField(null=True)
