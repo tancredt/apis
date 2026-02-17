@@ -1,0 +1,17 @@
+detector,manufacturer,detector_type,supplier
+MicroRAE,Honeywell,Personal Multigas Detector,AES
+MultiRAE,Honeywell,Pumped Multigas Detector,AES
+MiniRAE 3000,Honeywell,PID,AES
+ppbRAE 3000,Honeywell,PID,AES
+RAELink Mesh,Honeywell,Radio Modem,AES
+RAELink,Honeywell,Radio Modem,AES
+AreaRAE Plus,Honeywell,Area Multigas Detector,AES
+DMC3000,Mirion,Dosimeter,Radtronics
+Cypher 5000,Health Physics,Survey Meter,SGI
+6150 ad-t,Automess,Dose-rate Meter,SGI
+Dell 5430,Dell,Laptop,Dell
+MiniRadiac,Mirion,Dosimeter,Radtronics
+AutoRAE Controller,Honeywell,Calibration Station,AES
+AutoRAE MicroRAE,Honeywell,Calibration Station,AES
+LCD3.3,Smiths,IMS,Smiths
+AP4C,Proengin,FPD,Point Trading

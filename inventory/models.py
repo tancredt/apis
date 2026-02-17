@@ -9,6 +9,7 @@ class LocationType(models.TextChoices):
     WORK_GROUP = "WG", "Work Group"
     WAREHOUSE = "WA", "Warehouse"
     WORKSHOP = "WK", "Workshop"
+    EXTERNAL = "EX", "External"
     
     
 class Manufacturer(models.TextChoices):
@@ -20,36 +21,43 @@ class Manufacturer(models.TextChoices):
     SMITHS = "SM", "Smiths"
     INFICON = "IN", "Inficon"
     MIRION = "MI", "Mirion"
-    CANBERRA = "CB", "Canberra"
-    PRINCETON = "PI", "Princeton Electronics"
+    HEALTHPHYSICS = "HE", "Health Physics"
     AUTOMESS = "AU", "Automess"
     TSI = "TS", "TSI"
+    DELL = "DE", "Dell"
+    NIPPON = "NI", "Nippon"
+    CAC = "CA", "CAC"
+    CLEARGAS = "CG", "Clear Gas"
     
 class DetectorType(models.TextChoices):
     PID = "PI", "PID"
     FID = "FI", "FID"
-    PUMPED_MULTI = "PM", "Pumped Multi Sensor"
-    PERSONAL_MULTI = "NM", "Personal Multi Sensor"
-    AREA_MONITOR = "AM", "Area Monitor"
-    PARTICULATE_DETECTOR = "PD", "Particulate"
-    DOSIMETER = "DI", "DOSIMETER"
-    DOSERATE_METER = "DO", "Doserate Meter"
+    PUMPED_MULTI = "PM", "Pumped Multigas Detector"
+    PERSONAL_MULTI = "NM", "Personal Multigas Detector"
+    AREA_MONITOR = "AM", "Area Multigas Monitor"
+    PARTICULATE_COUNTER = "PC", "Particulate Counter"
+    DOSIMETER = "DI", "Dosimeter"
+    DOSERATE_METER = "DO", "Dose-rate Meter"
     SURVEY_METER = "SM", "Survey Meter"
     ION_MOBILITY_SPECTROMETER = "IM", "IMS"
     FPD = "FP", "FPD"
-    CALIBRATION_DOCK = "CD", "Calibration Dock"
-    CALIBRATION_CRADLE = "CC", "Calibration Cradle"
+    CALIBRATION_STATION = "CS", "Calibration Station"
+    RADIO_MODEM = "RM", "Radio Modem"
+    LAPTOP = "LT", "Laptop"
+    MERCURY_METER = "MM", "Mercury Meter"
+    GCMS = "GC", "GC/MS"
     
 class Supplier(models.TextChoices):
     AIRMET = "AM", "AirMet"
     AES = "AE", "AES"
     MSA = "MS", "MSA"
     DRAEGER = "DR", "Draeger"
-    WARSACH = "WS", "WARSACH"
+    WARSACH = "WS", "Warsach"
     CAC = "CA", "CAC"
+    CLEARGAS = "CG", "Clear Gas"
+    LEARSIEGLER = "LS", "Lear Siegler"
     
-
-class DetectorStatus(models.TextChoices):
+class DetectorStatus(models.Texthoices):
     ONORDER = "OO", "On Order"
     OFFLINE = "OF", "Offline Repair"
     INSTOCK = "IS", "In Stock"
@@ -64,6 +72,8 @@ class MaintenanceType(models.TextChoices):
     BATTERY = "BT", "Battery Replacement"
     FILTER = "FC", "Filter Replacement"
     DESSICANT = "DR", "Dessicant Replacement"
+    CLEAN = "CL", "Clean"
+    
 class MaintenanceTaskType(models.TextChoices):
     CALIBRATION = "CB", "Calibration"
     BUMP = "BM", "Bump"
@@ -86,16 +96,13 @@ class DetectorFaultStatus(models.TextChoices):
     OPEN = "OP", "Open"
     CLOSED = "CL", "Closed"
 
-class CylinderFaultStatus(models.TextChoices):
-    OPEN = "OP", "Open"
-    COMPLETE = "CP", "Complete"
-
 class DetectorFaultType(models.TextChoices):
     BUMPFAIL = "BF", "Failed Bump"
     SENSORFAIL = "SF", "Sensor Fail"
     DISPLAYSERROR = "DE", "Displays Error"
     WONTSTART = "WS", "Will not turn on"
-    DAMAGEDDISPLAY ="DD", "Damaged Display"
+    DAMAGEDDISPLAY = "DD", "Damaged Display"
+    DAMAGEDCASING = "DC", "Damaged Casing"
     MISSINGATTACHMENT = "MA", "Missing Attachment"
     
 class CylinderGas(models.TextChoices):
@@ -103,7 +110,7 @@ class CylinderGas(models.TextChoices):
     H2S = "HS", "H2S"
     CH4 = "CH", "CH4"
     O2 = "O2", "O2"
-    ISOBUTYLENE = "IB", "Isobutylene"
+    ISOBUTYLENE = "IB", "Iso"
     HCN = "HC", "HCN"
     N2 = "N2", "N2"
     CL2 = "CL", "Cl2"
@@ -112,6 +119,7 @@ class CylinderGas(models.TextChoices):
     NO2 = "NO", "NO2"
     CO2 = "C2", "CO2"
     NH3 = "NH", "NH3"
+    ETHYLENEOXIDE = "ET", "ETO"
     
 class SensorGas(models.TextChoices):
     CO = "CO", "CO"
@@ -126,7 +134,8 @@ class SensorGas(models.TextChoices):
     NO2 = "NO", "NO2"
     CO2 = "C2", "CO2"
     NH3 = "NH", "NH3"
-    
+    #ethylene oxide
+    ETO = "ET", "ETO"
 class CylinderVolume(models.TextChoices):
     L34 = "L034", "34 L"
     L65 = "L065", "65 L"
@@ -173,10 +182,10 @@ class Location(models.Model):
         return f"{self.get_location_type_display()} {self.label}"
 
 class DetectorModel(models.Model):
-    manufacturer = models.CharField(max_length=2, choices=Manufacturer.choices, default=Manufacturer.HONEYWELL)
+    manufacturer = models.CharField(max_length=2, choices=Manufacturer.choices, default=Manufacturer.HONEYWELL, blank=True, null=True)
     detector_type = models.CharField(max_length=2, choices=DetectorType.choices, default=DetectorType.PID)
-    supplier = models.CharField(max_length=2, choices=Supplier.choices, default=Supplier.MSA)
-    model_name = models.CharField(max_length=32, unique=True)
+    supplier = models.CharField(max_length=2, choices=Supplier.choices, default=Supplier.MSA, blank=True, null=True)
+    label = models.CharField(max_length=32, unique=True)
     part_number = models.CharField(max_length=32, blank=True)
     
     class Meta:

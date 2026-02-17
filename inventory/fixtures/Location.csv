@@ -1,0 +1,107 @@
+label,station,address,location_type,priority
+FS01,Eastern Hill,"456 Albert St, East Melbourne 3002",ST,1
+FS02,West Melbourne,"60 Batman St, West Melbourne 3003",ST,1
+FS03,Carlton,"106 Bouverie St, Carlton 3053",ST,1
+FS04,Brunswick,"24 Blyth St, Brunswick 3056",ST,1
+FS05,Broadmeadows,"338 Camp Rd, Broadmeadows 3047",ST,1
+FS06,Pascoe Vale,"345A Gaffney St, Pascoe Vale 3044",ST,1
+FS07,Thomastown,"92 Mahoneys Rd, Thomastown 3074",ST,1
+FS09,Somerton,"10 Somerton Park Drive, Campbellfield 3061",ST,1
+FS10,Richmond,"55 Church St, Richmond 3121",ST,1
+FS11,Epping,"28 Childs Rd, Epping 3076",ST,1
+FS12,Preston,"471 Bell St, Preston 3072",ST,1
+FS13,Northcote,"3 Mitchell St, Northcote 3070",ST,1
+FS14,Bundoora,"1083 Plenty Rd, Bundoora 3083",ST,1
+FS15,Heidelberg,"161 Bell St, Heidelberg 3084",ST,1
+FS16,Greensborough,"141 Grimshaw St, Greensborough 3088",ST,1
+FS17,Donnybrook,Not yet established,ST,1
+FS18,Hawthorn,"45 William St, Hawthorn 3122",ST,1
+FS19,North Balwyn,"312 Doncaster Rd, North Balwyn 3104",ST,1
+FS20,Box Hill,"1052 Maroondah Hwy, Box Hill 3128",ST,1
+FS22,Ringwood,"272 Maroondah Hwy, Ringwood 3134",ST,1
+FS23,Burwood,"25 Highbury Rd, Burwood 3125",ST,1
+FS24,Glen Iris (Malvern),"1721 Malvern Rd, Glen Iris 3146",ST,1
+FS25,Oakleigh,"100 Atherton Rd, Oakleigh 3166",ST,1
+FS26,Croydon,"306 Dorset Rd, Croydon 3136",ST,1
+FS27,Nunawading,"364 Maroondah Hwy, Nunawading 3131",ST,1
+FS28,Vermont South,"721 Highbury Rd, Vermont South 3133",ST,1
+FS29,Clayton,"529 Clayton Rd, Clayton 3169",ST,1
+FS30,Templestowe,"40 Serpells Rd, Templestowe 3106",ST,1
+FS31,Glen Waverley,"645 Ferntree Gully Rd, Glen Waverley 3150",ST,1
+FS32,Ormond,"311 North Rd, Caulfield South 3162",ST,1
+FS33,Mentone,"103 Nepean Hwy, Mentone 3194",ST,1
+FS34,Highett,"150 Wickham Rd, Highett 3190",ST,1
+FS35,Windsor,"156 Albert St, Windsor 3181",ST,1
+FS38,South Melbourne,"26 Moray St, South Melbourne 3205",ST,2
+FS39,Port Melbourne,"448 Graham St, Port Melbourne 3207",ST,1
+FS40,Laverton,"5 Epsom St, Laverton 3028",ST,1
+FS41,St Albans,"9 Taylors Rd, St Albans 3021",ST,1
+FS42,Newport,"231 Melbourne Rd, Newport 3015",ST,1
+FS43,Deer Park,"780A Ballarat Rd, Deer Park 3023",ST,1
+FS44,Sunshine,"30 McIntyre Rd, Sunshine 3020",ST,1
+FS45,Brooklyn,"29 Millers Rd, Brooklyn VIC 3012",ST,1
+FS46,Altona,"7 Akuna St, Altona 3018",ST,1
+FS47,Footscray,"69 Droop St, Footscray 3011",ST,1
+FS48,Taylors Lakes,"470 Melton Hwy, Taylors Lakes 3038",ST,1
+FS50,Ascot Vale,"258 Union Rd, Moonee Ponds 3039",ST,1
+FS51,Keilor,"145 Milleara Rd, East Keilor 3033",ST,1
+FS52,Tullamarine,"1 Western Ave, Tullamarine 3043",ST,1
+FS53,Sunbury,"144 Gap Rd, Sunbury 3429",ST,1
+FS54,Greenvale,"33 Barrymore Rd, Greenvale 3059",ST,1
+FS55,Caroline Springs,"8-10 Caroline Springs Bvd, Caroline Springs 3012",ST,1
+FS56,Melton,"40-44 Henry St, Melton 3337",ST,1
+FS57,Tarneit,"417 Derrimut Rd, Tarneit 3029",ST,1
+FS58,Point Cook,"85-93 Dunnings Rd, Point Cook 3030",ST,1
+FS59,Derrimut,"337 Fitzgerald Road, Derrimut VIC 3026",ST,1
+FS61,Lara,"25 Mill Rd, Lara 3212 (PO Box 15 Lara Vic 3212)",ST,2
+FS62,Corio,"20-32 Birdwood Ave, Norlane 3214",ST,1
+FS63,Geelong City,"69 McKillop St, Geelong 3220",ST,1
+FS64,Belmont,"2-4 Reynolds Rd, Belmont 3216",ST,1
+FS65,Armstrong Creek,,ST,1
+FS66,Ocean Grove,"5-11 Shell Rd, Ocean Grove 3226",ST,1
+FS67,Ballarat City,"1120 Sturt St, Ballarat 3350",ST,1
+FS68,Lucas,"89 Ballarat-Carngham Rd, Winter Valley 3358",ST,2
+FS70,Warrnambool,"61-67 Mortlake Rd, Warrnambool 3280",ST,1
+FS71,Portland,"130 Percy St, Portland 3305",ST,1
+FS72,Mildura,"338 San Mateo Ave, Mildura 3500",ST,1
+FS73,Bendigo,"145-149 Hargreaves St, Bendigo 3550",ST,1
+FS74,Wangaratta,"26-30 Handley St, Wangaratta 3677",ST,1
+FS75,Shepparton,"84-98 Archer Street, Shepparton 3630",ST,2
+FS76,Wodonga,"81 Thomas Mitchell Drive, Wodonga 3690",ST,1
+FS77,Traralgon,"158 Princes Hwy, Traralgon 3844",ST,1
+FS78,Morwell,"171 Princess Drive, Morwell 3840.",ST,1
+FS79,Latrobe West,"77-79 Lloyd St, Moe 3825",ST,1
+FS80,Craigieburn,"2 Belsay Place, Craigieburn 3064",ST,1
+FS81,South Morang,"875 Plenty Rd, South Morang 3752",ST,1
+FS82,Eltham City,"61 Brougham St, Eltham 3095",ST,1
+FS84,South Warrandyte,"29 Falconer Rd, Park Orchards 3114",ST,1
+FS85,Boronia,"296-306 Boronia Rd, Boronia 3155",ST,1
+FS86,Rowville,"1063 Wellington Rd, Rowville 3178",ST,1
+FS87,Dandenong,"186-190 Princes Highway, Dandenong 3175",ST,1
+FS88,Hallam,"12-14 Belgrave Hallam Rd, Hallam 3803",ST,1
+FS89,Springvale,"518 Springvale Rd, Springvale South 3172",ST,1
+FS90,Patterson River,"37 McLeod Rd, Carrum 3197",ST,1
+FS91,Frankston,"3 Cranbourne Rd, Frankston 3199",ST,1
+FS92,Cranbourne,"8-10 Arundel St, Cranbourne 3977",ST,1
+FS93,Pakenham,"780 Princes Hwy, Pakenham 3810",ST,1
+FS94,Mornington,"859 Nepean Hwy, Mornington 3931",ST,1
+FS95,Rosebud,"99-101 Boneo Rd, Rosebud 3939",ST,1
+FS97,Clyde North,,ST,1
+HZ38,South Melbourne,"26 Moray St, South Melbourne 3205",AP,2
+HZ61,Lara,"25 Mill Rd, Lara 3212 (PO Box 15 Lara Vic 3212)",AP,2
+HZ68,Lucas,"89 Ballarat-Carngham Rd, Winter Valley 3358",AP,2
+HZ75,Shepparton,"84-98 Archer Street, Shepparton 3630",AP,2
+HZ88,Hallam,"12-14 Belgrave Hallam Rd, Hallam 3803",AP,2
+Burnley,Burnley,"450 Burnley Street, Richmond 3121",WA,3
+FIU,FIU,,ST,1
+Academy,,"284 Hume Hwy, Craigieburn",WA,1
+Central,Central,,DI,2
+Eastern,Eastern,,DI,2
+Southern 1,Southern 1,,DI,2
+Southern 2,Southern 2,,DI,2
+SE Regional,SE Regional,,DI,2
+Western 1,Western 1,,DI,2
+Western 2,Western 2,,DI,2
+Western 3,Western 3,,DI,2
+Northern,Northern,,DI,2
+NW Regional,NW Regional,,DI,2

@@ -100,6 +100,9 @@ class LocationSerializer(serializers.ModelSerializer):
         read_only_fields = []
 
 class DetectorModelSerializer(serializers.ModelSerializer):
+    manufacturer = serializers.CharField(allow_null=True, required=False)
+    supplier = serializers.CharField(allow_null=True, required=False)
+
     class Meta:
         model = DetectorModel
         fields = "__all__"
