@@ -57,7 +57,7 @@ class Supplier(models.TextChoices):
     CLEARGAS = "CG", "Clear Gas"
     LEARSIEGLER = "LS", "Lear Siegler"
     
-class DetectorStatus(models.Texthoices):
+class DetectorStatus(models.TextChoices):
     ONORDER = "OO", "On Order"
     OFFLINE = "OF", "Offline Repair"
     INSTOCK = "IS", "In Stock"
