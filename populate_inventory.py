@@ -290,40 +290,40 @@ def create_detector_configurations(wb):
     """Create all DetectorModelConfiguration records."""
     print("Creating DetectorModelConfigurations...")
     ws = wb['DetectorConfigurations']
-    
+
     created = 0
     for row in ws.iter_rows(min_row=2, values_only=True):
         label = row[0]
         detector_type_label = row[1]
-        sensortypes_str = row[2]
-        
+        sensor_gases_str = row[2]
+
         if not label or not detector_type_label:
             continue
-        
+
         # Get the detector model
         if detector_type_label not in detector_models:
             print(f"  Warning: Detector model '{detector_type_label}' not found, skipping configuration '{label}'")
             continue
-        
+
         detector_model = detector_models[detector_type_label]
-        
-        # Parse sensor part numbers
-        sensor_partnumbers = ''
-        if sensortypes_str:
-            sensor_partnumbers = str(sensortypes_str)
-        
+
+        # Parse sensor gases (comma-separated string)
+        sensor_gases = ''
+        if sensor_gases_str:
+            sensor_gases = str(sensor_gases_str)
+
         config, created_flag = DetectorModelConfiguration.objects.get_or_create(
             detector_model=detector_model,
             label=label,
             defaults={
-                'sensor_partnumbers': sensor_partnumbers,
+                'sensor_gases': sensor_gases,
             }
         )
         key = f"{detector_type_label}_{label}"
         detector_configurations[key] = config
         if created_flag:
             created += 1
-    
+
     print(f"  Created {created} new detector configurations (total: {len(detector_configurations)})")
     return created
 
@@ -453,11 +453,11 @@ def create_sensors(wb):
     """Create all Sensor and SensorSlot records."""
     print("Creating Sensors and SensorSlots...")
     ws = wb['Sensors']
-    
+
     sensors_created = 0
-    slots_created = 0
+    slots_updated = 0
     skipped = 0
-    
+
     for row in ws.iter_rows(min_row=2, values_only=True):
         detector_label = row[0]
         serial = row[1]
@@ -465,29 +465,29 @@ def create_sensors(wb):
         manufacture_date = row[3]
         warranty_date = row[4]
         expiry_date = row[5]
-        
+
         if not detector_label or not part_number:
             continue
-        
+
         # Find the detector
         if detector_label not in detectors:
             print(f"  Warning: Detector '{detector_label}' not found for sensor '{serial}'")
             skipped += 1
             continue
-        
+
         detector = detectors[detector_label]
-        
+
         # Convert part_number to string
         part_number = str(part_number)
-        
+
         # Find the sensor type
         if part_number not in sensor_types:
             print(f"  Warning: Sensor type '{part_number}' not found for sensor '{serial}'")
             skipped += 1
             continue
-        
+
         sensor_type = sensor_types[part_number]
-        
+
         # Convert dates if needed
         if manufacture_date and isinstance(manufacture_date, datetime):
             manufacture_date = manufacture_date.date()
@@ -495,7 +495,7 @@ def create_sensors(wb):
             warranty_date = warranty_date.date()
         if expiry_date and isinstance(expiry_date, datetime):
             expiry_date = expiry_date.date()
-        
+
         # Create sensor
         sensor, created_flag = Sensor.objects.get_or_create(
             serial=serial,
@@ -509,20 +509,36 @@ def create_sensors(wb):
         )
         if created_flag:
             sensors_created += 1
-        
-        # Create sensor slot for this detector
-        slot, slot_created = SensorSlot.objects.get_or_create(
-            detector=detector,
-            sensor_type=sensor_type,
-            defaults={
-                'sensor': sensor,
-            }
-        )
-        if slot_created:
-            slots_created += 1
-    
-    print(f"  Created {sensors_created} new sensors, {slots_created} sensor slots (skipped: {skipped})")
-    return sensors_created, slots_created
+
+        # Find the sensor slot for this detector by matching sensorgas
+        # The sensor slot should have been created by the signals when the detector was created
+        try:
+            sensor_slot = SensorSlot.objects.get(
+                detector=detector,
+                sensorgas=sensor_type.sensorgas
+            )
+            # Update the sensor in the slot
+            if sensor_slot.sensor != sensor:
+                # If there's already a different sensor in this slot, mark it as decommissioned
+                if sensor_slot.sensor:
+                    old_sensor = sensor_slot.sensor
+                    old_sensor.status = 'DC'
+                    old_sensor.remove_date = sensor.install_date or date.today()
+                    old_sensor.save()
+                sensor_slot.sensor = sensor
+                sensor_slot.save()
+                slots_updated += 1
+        except SensorSlot.DoesNotExist:
+            # No slot exists for this sensorgas, create one
+            sensor_slot = SensorSlot.objects.create(
+                detector=detector,
+                sensorgas=sensor_type.sensorgas,
+                sensor=sensor
+            )
+            slots_updated += 1
+
+    print(f"  Created {sensors_created} new sensors, updated {slots_updated} sensor slots (skipped: {skipped})")
+    return sensors_created, slots_updated
 
 
 def main():
