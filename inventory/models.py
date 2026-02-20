@@ -203,12 +203,12 @@ class DetectorModel(models.Model):
         return f"{self.get_manufacturer_display()} {self.model_name} ({self.get_detector_type_display()})"
 
 #This is used to label the configuration of detector, eg "Blue MultiRAE"
-#The sensors_partnumbers is a comma delimited string with partnumbers
+#The sensors_gases is a comma delimited string with sensor_gas names
 #This is use to create the sensor slots for the detector when the detector is created
 class DetectorModelConfiguration(models.Model):
     detector_model = models.ForeignKey(DetectorModel, on_delete=models.PROTECT, related_name="detectormodelconfigurations")
     label = models.CharField(max_length=64)
-    sensor_partnumbers = models.CharField(max_length=256)
+    sensor_gases = models.CharField(max_length=256, null=True, blank=True)
 
     def __str__(self):
         return f"{self.label} ({self.detector_model.model_name})"
@@ -425,7 +425,7 @@ class Sensor(models.Model):
 #these should be created automatically for each detector when the detector is created. The sensors are slotted in an out as required.
 class SensorSlot(models.Model):
     detector = models.ForeignKey(Detector, on_delete=models.PROTECT)
-    sensor_type = models.ForeignKey(SensorType, on_delete=models.PROTECT)
+    #sensor_type = models.ForeignKey(SensorType, on_delete=models.PROTECT)
     sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, null=True)
-    
+    sensorgas = models.CharField(max_length=2, choices=SensorGas.choices, blank=True)
         
