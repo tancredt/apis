@@ -462,7 +462,7 @@ def create_sensors(wb):
         detector_label = row[0]
         serial = row[1]
         part_number = row[2]
-        manufacture_date = row[3]
+        receive_date = row[3]
         warranty_date = row[4]
         expiry_date = row[5]
 
@@ -489,26 +489,34 @@ def create_sensors(wb):
         sensor_type = sensor_types[part_number]
 
         # Convert dates if needed
-        if manufacture_date and isinstance(manufacture_date, datetime):
-            manufacture_date = manufacture_date.date()
+        if receive_date and isinstance(receive_date, datetime):
+            receive_date = receive_date.date()
         if warranty_date and isinstance(warranty_date, datetime):
             warranty_date = warranty_date.date()
         if expiry_date and isinstance(expiry_date, datetime):
             expiry_date = expiry_date.date()
 
-        # Create sensor
+        # Create sensor with detector assignment
         sensor, created_flag = Sensor.objects.get_or_create(
             serial=serial,
             defaults={
                 'sensor_type': sensor_type,
+                'detector': detector,
                 'status': 'OP',  # Operational
-                'receive_date': manufacture_date,
+                'receive_date': receive_date,
                 'warranty_date': warranty_date,
                 'expiry_date': expiry_date,
             }
         )
         if created_flag:
             sensors_created += 1
+        else:
+            # Update detector and dates if sensor already exists
+            sensor.detector = detector
+            sensor.receive_date = receive_date
+            sensor.warranty_date = warranty_date
+            sensor.expiry_date = expiry_date
+            sensor.save()
 
         # Find the sensor slot for this detector by matching sensorgas
         # The sensor slot should have been created by the signals when the detector was created
@@ -523,7 +531,7 @@ def create_sensors(wb):
                 if sensor_slot.sensor:
                     old_sensor = sensor_slot.sensor
                     old_sensor.status = 'DC'
-                    old_sensor.remove_date = sensor.install_date or date.today()
+                    old_sensor.remove_date = sensor.receive_date or date.today()
                     old_sensor.save()
                 sensor_slot.sensor = sensor
                 sensor_slot.save()
