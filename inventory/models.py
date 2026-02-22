@@ -144,6 +144,8 @@ class SensorGas(models.TextChoices):
     NH3 = "NH", "NH3"
     #ethylene oxide
     ETO = "ET", "ETO"
+    COH2S = "CS", "CO/H2S"
+    
 class CylinderVolume(models.TextChoices):
     L34 = "L034", "34 L"
     L65 = "L065", "65 L"

@@ -159,7 +159,7 @@ def get_sensor_gas_code(desc):
         'PH3': 'PH',
         'SO2': 'SO',
         'PID': 'VO',  # PID detects VOCs
-        'CO/H2S': 'CO',  # Dual sensor, use CO as primary
+        'CO/H2S': 'CS',  # Dual sensor, use CO as primary
     }
     return mapping.get(desc, 'VO')
 
@@ -462,20 +462,12 @@ def create_sensors(wb):
         detector_label = row[0]
         serial = row[1]
         part_number = row[2]
-        receive_date = row[3]
+        manufacture_date = row[3]  # Column 3 is manufacture_date, not receive_date
         warranty_date = row[4]
         expiry_date = row[5]
 
-        if not detector_label or not part_number:
+        if not part_number:
             continue
-
-        # Find the detector
-        if detector_label not in detectors:
-            print(f"  Warning: Detector '{detector_label}' not found for sensor '{serial}'")
-            skipped += 1
-            continue
-
-        detector = detectors[detector_label]
 
         # Convert part_number to string
         part_number = str(part_number)
@@ -489,21 +481,30 @@ def create_sensors(wb):
         sensor_type = sensor_types[part_number]
 
         # Convert dates if needed
-        if receive_date and isinstance(receive_date, datetime):
-            receive_date = receive_date.date()
+        if manufacture_date and isinstance(manufacture_date, datetime):
+            manufacture_date = manufacture_date.date()
         if warranty_date and isinstance(warranty_date, datetime):
             warranty_date = warranty_date.date()
         if expiry_date and isinstance(expiry_date, datetime):
             expiry_date = expiry_date.date()
 
-        # Create sensor with detector assignment
+        # Find the detector (may be None if sensor is not attached)
+        detector = None
+        if detector_label:
+            if detector_label not in detectors:
+                print(f"  Warning: Detector '{detector_label}' not found for sensor '{serial}'")
+                skipped += 1
+                continue
+            detector = detectors[detector_label]
+
+        # Create sensor (detector may be None for unattached sensors)
         sensor, created_flag = Sensor.objects.get_or_create(
             serial=serial,
             defaults={
                 'sensor_type': sensor_type,
                 'detector': detector,
                 'status': 'OP',  # Operational
-                'receive_date': receive_date,
+                'receive_date': manufacture_date,  # Using manufacture_date as receive_date
                 'warranty_date': warranty_date,
                 'expiry_date': expiry_date,
             }
@@ -513,37 +514,39 @@ def create_sensors(wb):
         else:
             # Update detector and dates if sensor already exists
             sensor.detector = detector
-            sensor.receive_date = receive_date
+            sensor.receive_date = manufacture_date
             sensor.warranty_date = warranty_date
             sensor.expiry_date = expiry_date
             sensor.save()
 
-        # Find the sensor slot for this detector by matching sensorgas
-        # The sensor slot should have been created by the signals when the detector was created
-        try:
-            sensor_slot = SensorSlot.objects.get(
-                detector=detector,
-                sensorgas=sensor_type.sensorgas
-            )
-            # Update the sensor in the slot
-            if sensor_slot.sensor != sensor:
-                # If there's already a different sensor in this slot, mark it as decommissioned
-                if sensor_slot.sensor:
-                    old_sensor = sensor_slot.sensor
-                    old_sensor.status = 'DC'
-                    old_sensor.remove_date = sensor.receive_date or date.today()
-                    old_sensor.save()
-                sensor_slot.sensor = sensor
-                sensor_slot.save()
+        # Only update sensor slots if sensor is attached to a detector
+        if detector:
+            # Find the sensor slot for this detector by matching sensorgas
+            # The sensor slot should have been created by the signals when the detector was created
+            try:
+                sensor_slot = SensorSlot.objects.get(
+                    detector=detector,
+                    sensorgas=sensor_type.sensorgas
+                )
+                # Update the sensor in the slot
+                if sensor_slot.sensor != sensor:
+                    # If there's already a different sensor in this slot, mark it as decommissioned
+                    if sensor_slot.sensor:
+                        old_sensor = sensor_slot.sensor
+                        old_sensor.status = 'DC'
+                        old_sensor.remove_date = sensor.receive_date or date.today()
+                        old_sensor.save()
+                    sensor_slot.sensor = sensor
+                    sensor_slot.save()
+                    slots_updated += 1
+            except SensorSlot.DoesNotExist:
+                # No slot exists for this sensorgas, create one
+                sensor_slot = SensorSlot.objects.create(
+                    detector=detector,
+                    sensorgas=sensor_type.sensorgas,
+                    sensor=sensor
+                )
                 slots_updated += 1
-        except SensorSlot.DoesNotExist:
-            # No slot exists for this sensorgas, create one
-            sensor_slot = SensorSlot.objects.create(
-                detector=detector,
-                sensorgas=sensor_type.sensorgas,
-                sensor=sensor
-            )
-            slots_updated += 1
 
     print(f"  Created {sensors_created} new sensors, updated {slots_updated} sensor slots (skipped: {skipped})")
     return sensors_created, slots_updated
