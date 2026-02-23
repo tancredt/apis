@@ -183,18 +183,15 @@ def create_locations(wb):
         # Map location type
         location_type_code = get_location_type_code(location_type_desc)
         
-        location, created_flag = Location.objects.get_or_create(
+        location = Location.objects.create(
             label=label,
-            defaults={
-                'station': station,
-                'address': address,
-                'location_type': location_type_code,
-                'priority': priority,
-            }
+            station=station,
+            address=address,
+            location_type=location_type_code,
+            priority=priority,
         )
         locations[label] = location
-        if created_flag:
-            created += 1
+        created += 1
 
     print(f"  Created {created} new locations (total: {len(locations)})")
     return created
@@ -220,17 +217,14 @@ def create_detector_models(wb):
         manufacturer_code = get_manufacturer_code(manufacturer_desc)
         supplier_code = get_supplier_code(supplier_desc)
         
-        detector_model, created_flag = DetectorModel.objects.get_or_create(
+        detector_model = DetectorModel.objects.create(
             label=model_name,
-            defaults={
-                'detector_type': detector_type_code,
-                'manufacturer': manufacturer_code,
-                'supplier': supplier_code,
-            }
+            detector_type=detector_type_code,
+            manufacturer=manufacturer_code,
+            supplier=supplier_code,
         )
         detector_models[model_name] = detector_model
-        if created_flag:
-            created += 1
+        created += 1
     
     print(f"  Created {created} new detector models (total: {len(detector_models)})")
     return created
@@ -267,20 +261,17 @@ def create_sensor_types(wb):
         # Map sensor gas
         sensor_gas_code = get_sensor_gas_code(sensorgas)
         
-        sensor_type, created_flag = SensorType.objects.get_or_create(
+        sensor_type = SensorType.objects.create(
             part_number=part_number,
-            defaults={
-                'sensorgas': sensor_gas_code,
-                'manufacturer': manufacturer_code,
-                'compatible_detectormodels': ','.join(compatible_models) if compatible_models else '',
-                'warranty_months': warranty_months,
-                'expiry_months': expiry_months,
-                'active': True,
-            }
+            sensorgas=sensor_gas_code,
+            manufacturer=manufacturer_code,
+            compatible_detectormodels=','.join(compatible_models) if compatible_models else '',
+            warranty_months=warranty_months,
+            expiry_months=expiry_months,
+            active=True,
         )
         sensor_types[part_number] = sensor_type
-        if created_flag:
-            created += 1
+        created += 1
     
     print(f"  Created {created} new sensor types (total: {len(sensor_types)})")
     return created
@@ -312,17 +303,14 @@ def create_detector_configurations(wb):
         if sensor_gases_str:
             sensor_gases = str(sensor_gases_str)
 
-        config, created_flag = DetectorModelConfiguration.objects.get_or_create(
+        config = DetectorModelConfiguration.objects.create(
             detector_model=detector_model,
             label=label,
-            defaults={
-                'sensor_gases': sensor_gases,
-            }
+            sensor_gases=sensor_gases,
         )
         key = f"{detector_type_label}_{label}"
         detector_configurations[key] = config
-        if created_flag:
-            created += 1
+        created += 1
 
     print(f"  Created {created} new detector configurations (total: {len(detector_configurations)})")
     return created
@@ -386,19 +374,16 @@ def create_detectors(wb):
                 except DetectorModelConfiguration.DoesNotExist:
                     pass
 
-        detector, created_flag = Detector.objects.get_or_create(
+        detector = Detector.objects.create(
             label=label,
-            defaults={
-                'serial': serial,
-                'detector_model': detector_model,
-                'location': location,
-                'status': status,
-                'configuration': configuration,
-            }
+            serial=serial,
+            detector_model=detector_model,
+            location=location,
+            status=status,
+            configuration=configuration,
         )
         detectors[label] = detector
-        if created_flag:
-            created += 1
+        created += 1
 
     print(f"  Created {created} new detectors (total: {len(detectors)}, skipped: {skipped})")
     return created
@@ -434,16 +419,13 @@ def create_maintenance(wb):
         if due_date and isinstance(due_date, datetime):
             due_date = due_date.date()
         
-        maintenance, created_flag = Maintenance.objects.get_or_create(
+        maintenance = Maintenance.objects.create(
             detector=detector,
             maintenance_type=maintenance_type,
             date_due=due_date,
-            defaults={
-                'status': 'SC',  # Scheduled
-            }
+            status='SC',  # Scheduled
         )
-        if created_flag:
-            created += 1
+        created += 1
     
     print(f"  Created {created} new maintenance records (skipped: {skipped})")
     return created
@@ -498,58 +480,19 @@ def create_sensors(wb):
             detector = detectors[detector_label]
 
         # Create sensor (detector may be None for unattached sensors)
-        sensor, created_flag = Sensor.objects.get_or_create(
+        sensor = Sensor.objects.create(
             serial=serial,
-            defaults={
-                'sensor_type': sensor_type,
-                'detector': detector,
-                'status': 'OP',  # Operational
-                'receive_date': manufacture_date,  # Using manufacture_date as receive_date
-                'warranty_date': warranty_date,
-                'expiry_date': expiry_date,
-            }
+            sensor_type=sensor_type,
+            detector=detector,
+            status='OP',  # Operational
+            receive_date=manufacture_date,
+            warranty_date=warranty_date,
+            expiry_date=expiry_date,
         )
-        if created_flag:
-            sensors_created += 1
-        else:
-            # Update detector and dates if sensor already exists
-            sensor.detector = detector
-            sensor.receive_date = manufacture_date
-            sensor.warranty_date = warranty_date
-            sensor.expiry_date = expiry_date
-            sensor.save()
+        sensors_created += 1
 
-        # Only update sensor slots if sensor is attached to a detector
-        if detector:
-            # Find the sensor slot for this detector by matching sensorgas
-            # The sensor slot should have been created by the signals when the detector was created
-            try:
-                sensor_slot = SensorSlot.objects.get(
-                    detector=detector,
-                    sensorgas=sensor_type.sensorgas
-                )
-                # Update the sensor in the slot
-                if sensor_slot.sensor != sensor:
-                    # If there's already a different sensor in this slot, mark it as decommissioned
-                    if sensor_slot.sensor:
-                        old_sensor = sensor_slot.sensor
-                        old_sensor.status = 'DC'
-                        old_sensor.remove_date = sensor.receive_date or date.today()
-                        old_sensor.save()
-                    sensor_slot.sensor = sensor
-                    sensor_slot.save()
-                    slots_updated += 1
-            except SensorSlot.DoesNotExist:
-                # No slot exists for this sensorgas, create one
-                sensor_slot = SensorSlot.objects.create(
-                    detector=detector,
-                    sensorgas=sensor_type.sensorgas,
-                    sensor=sensor
-                )
-                slots_updated += 1
-
-    print(f"  Created {sensors_created} new sensors, updated {slots_updated} sensor slots (skipped: {skipped})")
-    return sensors_created, slots_updated
+    print(f"  Created {sensors_created} new sensors (skipped: {skipped})")
+    return sensors_created
 
 
 def main():
