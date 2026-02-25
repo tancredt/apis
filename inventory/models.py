@@ -399,7 +399,7 @@ class SensorType(models.Model):
     manufacturer = models.CharField(max_length=2, choices=Manufacturer.choices, default=Manufacturer.HONEYWELL)
     part_number = models.CharField(max_length=32, unique=True)
     active = models.BooleanField(default=True)
-    sensorgas = models.CharField(max_length=2, choices=SensorGas.choices, blank=True)
+    sensorgas = models.CharField(max_length=2, choices=SensorGas.choices)
     #This just lists the detector models that the sensor is compatible with
     #Some sensors are compatible with multiple detector models
     #Making it a comma delimeted string rather than joining a new many-to-many table
@@ -429,5 +429,5 @@ class SensorSlot(models.Model):
     detector = models.ForeignKey(Detector, on_delete=models.PROTECT)
     #sensor_type = models.ForeignKey(SensorType, on_delete=models.PROTECT)
     sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, null=True)
-    sensorgas = models.CharField(max_length=2, choices=SensorGas.choices, blank=True)
+    sensorgas = models.CharField(max_length=2, choices=SensorGas.choices)
         
