@@ -373,9 +373,12 @@ class Cylinder(models.Model):
     expiry_date = models.DateField(null=True)
     operational_date = models.DateField(null=True)
     empty_date = models.DateField(null=True)
-                              
+
     class Meta:
         ordering = ['cylinder_type', 'receive_date',]
+
+    def __str__(self):
+        return f"CYL{self.cylinder_number:05d} - {self.cylinder_type.part_number} ({self.get_status_display()})"
 
 class CylinderFault(models.Model):
     cylinder = models.ForeignKey(Cylinder, on_delete=models.CASCADE)
@@ -430,4 +433,7 @@ class SensorSlot(models.Model):
     #sensor_type = models.ForeignKey(SensorType, on_delete=models.PROTECT)
     sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, null=True)
     sensorgas = models.CharField(max_length=2, choices=SensorGas.choices)
+
+    def __str__(self):
+        return f"{self.detector.label} - {self.get_sensorgas_display()} ({self.sensor.serial if self.sensor else 'Empty'})"
         
