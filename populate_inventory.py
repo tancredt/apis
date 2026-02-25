@@ -159,9 +159,12 @@ def get_sensor_gas_code(desc):
         'PH3': 'PH',
         'SO2': 'SO',
         'PID': 'VO',  # PID detects VOCs
-        'CO/H2S': 'CS',  # Dual sensor, use CO as primary
+        'CO/H2S': 'CS',  # Dual sensor
+        'CO2': 'C2',
+        'ETO': 'ET',
+        'VOC': 'VO',
     }
-    return mapping.get(desc, 'VO')
+    return mapping.get(desc, None)
 
 
 def create_locations(wb):
