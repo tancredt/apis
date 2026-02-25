@@ -167,6 +167,21 @@ def get_sensor_gas_code(desc):
     return mapping.get(desc, None)
 
 
+def convert_sensor_gases_to_codes(sensor_gases_str):
+    """Convert comma-separated sensor gas names to codes."""
+    if not sensor_gases_str:
+        return ''
+    gases = [g.strip() for g in str(sensor_gases_str).split(',')]
+    codes = []
+    for gas in gases:
+        code = get_sensor_gas_code(gas)
+        if code:
+            codes.append(code)
+        else:
+            print(f"  WARNING: Unknown sensor gas '{gas}' - skipping")
+    return ','.join(codes)
+
+
 def create_locations(wb):
     """Create all Location records."""
     print("Creating Locations...")
@@ -301,10 +316,10 @@ def create_detector_configurations(wb):
 
         detector_model = detector_models[detector_type_label]
 
-        # Parse sensor gases (comma-separated string)
+        # Parse sensor gases (comma-separated string) and convert to codes
         sensor_gases = ''
         if sensor_gases_str:
-            sensor_gases = str(sensor_gases_str)
+            sensor_gases = convert_sensor_gases_to_codes(sensor_gases_str)
 
         config = DetectorModelConfiguration.objects.create(
             detector_model=detector_model,
