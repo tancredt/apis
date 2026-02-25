@@ -11,7 +11,7 @@ from .models import (
     CylinderType,
     Cylinder,
     CylinderFault,
-    LocationDetectorSlots,
+    LocationDetectorSlot,
     SensorType,
     Sensor,
     SensorSlot
@@ -146,9 +146,9 @@ class DetectorModelConfigurationFilter(filters.FilterSet):
     class Meta:
         model = DetectorModelConfiguration
         fields = []
-class LocationDetectorSlotsFilter(filters.FilterSet):
+class LocationDetectorSlotFilter(filters.FilterSet):
     class Meta:
-        model = LocationDetectorSlots
+        model = LocationDetectorSlot
         fields = []
 
 class CylinderFaultFilter(filters.FilterSet):

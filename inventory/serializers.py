@@ -5,7 +5,7 @@ from .models import (
     DetectorModel,
     Detector,
     DetectorModelConfiguration,
-    LocationDetectorSlots,
+    LocationDetectorSlot,
     Maintenance,
     MaintenanceTask,
     DetectorFault,
@@ -246,9 +246,9 @@ class SensorSlotSerializer(serializers.ModelSerializer):
         model = SensorSlot
         fields = "__all__"
         
-class LocationDetectorSlotsSerializer(serializers.ModelSerializer):
+class LocationDetectorSlotSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LocationDetectorSlots
+        model = LocationDetectorSlot
         fields = "__all__"
 
 

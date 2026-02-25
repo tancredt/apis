@@ -16,7 +16,7 @@ from .models import (
     Cylinder,
     CylinderType,
     CylinderFault,
-    LocationDetectorSlots,
+    LocationDetectorSlot,
     LocationType,
     Manufacturer,
     DetectorType,
@@ -45,7 +45,7 @@ from .serializers import (
     CylinderSerializer,
     CylinderTypeSerializer,
     CylinderFaultSerializer,
-    LocationDetectorSlotsSerializer,
+    LocationDetectorSlotSerializer,
     SensorTypeSerializer,
     SensorSerializer,
     SensorSlotSerializer,
@@ -80,7 +80,7 @@ from .filters import (
     CylinderFilter,
     CylinderTypeFilter,
     CylinderFaultFilter,
-    LocationDetectorSlotsFilter,
+    LocationDetectorSlotFilter,
     SensorTypeFilter,
     SensorFilter,
     SensorSlotFilter,
@@ -438,11 +438,11 @@ class DetectorModelConfigurationViewSet(viewsets.ModelViewSet):
     filterset_class = DetectorModelConfigurationFilter
     permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
 
-class LocationDetectorSlotsViewSet(viewsets.ModelViewSet):
-    serializer_class = LocationDetectorSlotsSerializer
-    queryset = LocationDetectorSlots.objects.all()
+class LocationDetectorSlotViewSet(viewsets.ModelViewSet):
+    serializer_class = LocationDetectorSlotSerializer
+    queryset = LocationDetectorSlot.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_class = LocationDetectorSlotsFilter
+    filterset_class = LocationDetectorSlotFilter
     permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
 
 class CylinderFaultViewSet(viewsets.ModelViewSet):

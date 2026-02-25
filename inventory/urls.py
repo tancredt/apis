@@ -11,7 +11,7 @@ from .views import (
     CylinderTypeViewSet,
     CylinderViewSet,
     CylinderFaultViewSet,
-    LocationDetectorSlotsViewSet,
+    LocationDetectorSlotViewSet,
     DetectorModelConfigurationViewSet,
     SensorTypeViewSet,
     SensorViewSet,
@@ -45,7 +45,7 @@ router.register(r'detectorfaults', DetectorFaultViewSet)
 router.register(r'cylindertypes', CylinderTypeViewSet)
 router.register(r'cylinders', CylinderViewSet)
 router.register(r'cylinderfaults', CylinderFaultViewSet)
-router.register(r'locationdetectorslots', LocationDetectorSlotsViewSet)
+router.register(r'locationdetectorslots', LocationDetectorSlotViewSet)
 router.register(r'detectormodelconfigurations', DetectorModelConfigurationViewSet)
 router.register(r'sensortypes', SensorTypeViewSet)
 router.register(r'sensors', SensorViewSet)

@@ -251,7 +251,7 @@ class Detector(models.Model):
     def __str__(self):
         return f"{self.label} {self.serial or ''}".strip()
 
-class LocationDetectorSlots(models.Model):
+class LocationDetectorSlot(models.Model):
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name="detector_model_slots")
     detector_model = models.ForeignKey(DetectorModel, on_delete=models.CASCADE, related_name="location_slots")
     detector = models.ForeignKey(Detector, on_delete=models.PROTECT, null=True, related_name="detector_slots")
