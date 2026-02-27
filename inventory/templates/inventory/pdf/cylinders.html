@@ -1,0 +1,66 @@
+{% extends "inventory/pdf/base.html" %}
+
+{% block title %}Calibration Cylinders Report - Hazmat Inventory{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Calibration Cylinders Report</h1>
+    <p>Complete inventory of calibration gas cylinders</p>
+</div>
+
+<div class="report-info">
+    <p><strong>Total Cylinders:</strong> {{ cylinders.count }}</p>
+    <p><strong>Operational:</strong> {{ cylinders|length_where:"status=OP" }} | 
+       <strong>In Stock:</strong> {{ cylinders|length_where:"status=IS" }} | 
+       <strong>On Order:</strong> {{ cylinders|length_where:"status=OO" }} | 
+       <strong>Empty:</strong> {{ cylinders|length_where:"status=MT" }}</p>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Cylinder #</th>
+            <th>Serial</th>
+            <th>Part Number</th>
+            <th>Gas Composition</th>
+            <th>Location</th>
+            <th>Assigned To</th>
+            <th>Status</th>
+            <th>Expiry</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cylinder in cylinders %}
+        <tr>
+            <td><strong>CYL{{ cylinder.cylinder_number|stringformat:"05d" }}</strong></td>
+            <td>{{ cylinder.serial|default:"N/A" }}</td>
+            <td>{{ cylinder.cylinder_type.part_number }}</td>
+            <td>
+                {% if cylinder.cylinder_type.cylinder_1_gas %}
+                    {{ cylinder.cylinder_type.get_cylinder_1_gas_display }} ({{ cylinder.cylinder_type.cylinder_1_conc }} {{ cylinder.cylinder_type.get_cylinder_1_units_display }})
+                {% endif %}
+                {% if cylinder.cylinder_type.cylinder_2_gas %}
+                    / {{ cylinder.cylinder_type.get_cylinder_2_gas_display }} ({{ cylinder.cylinder_type.cylinder_2_conc }} {{ cylinder.cylinder_type.get_cylinder_2_units_display }})
+                {% endif %}
+                {% if cylinder.cylinder_type.cylinder_3_gas %}
+                    / {{ cylinder.cylinder_type.get_cylinder_3_gas_display }} ({{ cylinder.cylinder_type.cylinder_3_conc }} {{ cylinder.cylinder_type.get_cylinder_3_units_display }})
+                {% endif %}
+                {% if cylinder.cylinder_type.cylinder_4_gas %}
+                    / {{ cylinder.cylinder_type.get_cylinder_4_gas_display }} ({{ cylinder.cylinder_type.cylinder_4_conc }} {{ cylinder.cylinder_type.get_cylinder_4_units_display }})
+                {% endif %}
+            </td>
+            <td>{{ cylinder.location.label }}</td>
+            <td>{{ cylinder.detector.label|default:"Not Assigned" }}</td>
+            <td>
+                <span class="status-badge status-{{ cylinder.status|lower }}">
+                    {{ cylinder.get_status_display }}
+                </span>
+            </td>
+            <td class="{% if cylinder.expiry_date %}{% if cylinder.expiry_date <= today %}date-overdue{% elif cylinder.expiry_date <= eight_weeks %}date-warning{% else %}date-future{% endif %}{% endif %}">
+                {{ cylinder.expiry_date|date:"Y-m-d"|default:"N/A" }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

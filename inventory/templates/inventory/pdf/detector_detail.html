@@ -1,0 +1,164 @@
+{% extends "inventory/pdf/base.html" %}
+
+{% block title %}Detector Details: {{ detector.label }} - Hazmat Inventory{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Detector Details</h1>
+    <p>{{ detector.label }} - {{ detector.serial }}</p>
+</div>
+
+<div class="detail-section no-break">
+    <h2>Detector Information</h2>
+    <div class="detail-grid">
+        <div class="detail-row">
+            <div class="detail-label">Label:</div>
+            <div class="detail-value">{{ detector.label }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Serial:</div>
+            <div class="detail-value">{{ detector.serial }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Model:</div>
+            <div class="detail-value">{{ detector.detector_model.label }} ({{ detector.detector_model.get_detector_type_display }})</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Configuration:</div>
+            <div class="detail-value">{{ detector.configuration.label|default:"N/A" }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Location:</div>
+            <div class="detail-value">{{ detector.location.label }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Status:</div>
+            <div class="detail-value">
+                <span class="status-badge status-{{ detector.status|lower }}">
+                    {{ detector.get_status_display }}
+                </span>
+            </div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Firmware:</div>
+            <div class="detail-value">{{ detector.firmware|default:"N/A" }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Purchase Date:</div>
+            <div class="detail-value">{{ detector.purchase_date|date:"Y-m-d"|default:"N/A" }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Purchase Cost:</div>
+            <div class="detail-value">${{ detector.purchase_cost|default:"0.00" }}</div>
+        </div>
+        {% if detector.notes %}
+        <div class="detail-row">
+            <div class="detail-label">Notes:</div>
+            <div class="detail-value">{{ detector.notes }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="detail-section no-break">
+    <h2>Sensors Attached</h2>
+    {% if sensor_slots %}
+    <table>
+        <thead>
+            <tr>
+                <th>Gas Type</th>
+                <th>Sensor Serial</th>
+                <th>Part Number</th>
+                <th>Warranty Date</th>
+                <th>Expiry Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for slot in sensor_slots %}
+            <tr>
+                <td><strong>{{ slot.get_sensorgas_display }}</strong></td>
+                <td>{{ slot.sensor.serial|default:"Not Installed" }}</td>
+                <td>{{ slot.sensor.sensor_type.part_number|default:"N/A" }}</td>
+                <td>{{ slot.sensor.warranty_date|date:"Y-m-d"|default:"N/A" }}</td>
+                <td class="{% if slot.sensor.expiry_date %}{% if slot.sensor.expiry_date <= today %}date-overdue{% elif slot.sensor.expiry_date <= eight_weeks %}date-warning{% else %}date-future{% endif %}{% endif %}">
+                    {{ slot.sensor.expiry_date|date:"Y-m-d"|default:"N/A" }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No sensors attached to this detector.</p>
+    {% endif %}
+</div>
+
+<div class="detail-section no-break">
+    <h2>Maintenance History</h2>
+    {% if maintenances %}
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Date Due</th>
+                <th>Date Performed</th>
+                <th>Performed By</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for maint in maintenances %}
+            <tr>
+                <td>{{ maint.get_maintenance_type_display }}</td>
+                <td>
+                    <span class="status-badge status-{{ maint.status|lower }}">
+                        {{ maint.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ maint.date_due|date:"Y-m-d" }}</td>
+                <td>{{ maint.date_performed|date:"Y-m-d"|default:"N/A" }}</td>
+                <td>{{ maint.performed_by|default:"N/A" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No maintenance records for this detector.</p>
+    {% endif %}
+</div>
+
+<div class="detail-section no-break">
+    <h2>Fault History</h2>
+    {% if faults %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date Reported</th>
+                <th>Fault Type</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Resolved</th>
+                <th>Resolved By</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fault in faults %}
+            <tr>
+                <td>{{ fault.report_dt|date:"Y-m-d" }}</td>
+                <td>{{ fault.get_fault_type_display }}</td>
+                <td>{{ fault.report_location.label }}</td>
+                <td>
+                    <span class="status-badge {% if fault.status == 'CL' %}status-dc{% else %}status-of{% endif %}">
+                        {{ fault.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ fault.resolve_dt|date:"Y-m-d"|default:"N/A" }}</td>
+                <td>{{ fault.resolved_by|default:"N/A" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No fault records for this detector.</p>
+    {% endif %}
+</div>
+{% endblock %}

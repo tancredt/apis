@@ -1,7 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, status
 from django_filters import rest_framework as filters
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from django.utils import timezone
+from datetime import timedelta
+from weasyprint import HTML
 
 from .models import (
     Location,
@@ -451,3 +456,141 @@ class CylinderFaultViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = CylinderFaultFilter
     permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+
+
+# ============== PDF Report Views ==============
+
+def get_date_context():
+    """Get common date context for PDF templates."""
+    today = timezone.now().date()
+    eight_weeks = today + timedelta(weeks=8)
+    return {'today': today, 'eight_weeks': eight_weeks}
+
+
+def detectors_pdf(request):
+    """Generate PDF report of all detectors."""
+    detectors = Detector.objects.select_related(
+        'detector_model', 'location', 'configuration'
+    ).order_by('label')
+    
+    context = {
+        'detectors': detectors,
+        **get_date_context()
+    }
+    
+    html_string = render_to_string('inventory/pdf/detectors.html', context)
+    pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="detectors.pdf"'
+    return response
+
+
+def sensors_pdf(request):
+    """Generate PDF report of all sensors."""
+    sensors = Sensor.objects.select_related(
+        'sensor_type', 'detector'
+    ).order_by('sensor_type__part_number', 'serial')
+    
+    context = {
+        'sensors': sensors,
+        **get_date_context()
+    }
+    
+    html_string = render_to_string('inventory/pdf/sensors.html', context)
+    pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="sensors.pdf"'
+    return response
+
+
+def cylinders_pdf(request):
+    """Generate PDF report of all calibration cylinders."""
+    cylinders = Cylinder.objects.select_related(
+        'cylinder_type', 'location', 'detector'
+    ).order_by('cylinder_number')
+    
+    context = {
+        'cylinders': cylinders,
+        **get_date_context()
+    }
+    
+    html_string = render_to_string('inventory/pdf/cylinders.html', context)
+    pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="cylinders.pdf"'
+    return response
+
+
+def maintenance_pdf(request):
+    """Generate PDF report of all maintenance records."""
+    maintenances = Maintenance.objects.select_related(
+        'detector'
+    ).prefetch_related('tasks').order_by('-date_due')
+    
+    context = {
+        'maintenances': maintenances,
+        **get_date_context()
+    }
+    
+    html_string = render_to_string('inventory/pdf/maintenance.html', context)
+    pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="maintenance.pdf"'
+    return response
+
+
+def faults_pdf(request):
+    """Generate PDF report of all fault reports."""
+    faults = DetectorFault.objects.select_related(
+        'detector', 'report_location'
+    ).order_by('-report_dt')
+    
+    context = {
+        'faults': faults,
+        **get_date_context()
+    }
+    
+    html_string = render_to_string('inventory/pdf/faults.html', context)
+    pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="faults.pdf"'
+    return response
+
+
+def detector_detail_pdf(request, detector_id):
+    """Generate PDF report for a single detector with all details."""
+    from django.shortcuts import get_object_or_404
+    
+    detector = get_object_or_404(
+        Detector.objects.select_related(
+            'detector_model', 'location', 'configuration'
+        ),
+        id=detector_id
+    )
+    
+    sensor_slots = SensorSlot.objects.select_related(
+        'sensor__sensor_type'
+    ).filter(detector=detector).order_by('sensorgas')
+    
+    maintenances = Maintenance.objects.filter(detector=detector).order_by('-date_due')
+    faults = DetectorFault.objects.filter(detector=detector).order_by('-report_dt')
+    
+    context = {
+        'detector': detector,
+        'sensor_slots': sensor_slots,
+        'maintenances': maintenances,
+        'faults': faults,
+        **get_date_context()
+    }
+    
+    html_string = render_to_string('inventory/pdf/detector_detail.html', context)
+    pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="detector_{detector.label}.pdf"'
+    return response

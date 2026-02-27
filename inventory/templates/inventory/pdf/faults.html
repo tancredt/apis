@@ -1,0 +1,49 @@
+{% extends "inventory/pdf/base.html" %}
+
+{% block title %}Fault Reports - Hazmat Inventory{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Fault Reports</h1>
+    <p>All detector fault reports</p>
+</div>
+
+<div class="report-info">
+    <p><strong>Total Faults:</strong> {{ faults.count }}</p>
+    <p><strong>Open:</strong> {{ faults|length_where:"status=OP" }} | 
+       <strong>Resolved:</strong> {{ faults|length_where:"status=CL" }}</p>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Detector</th>
+            <th>Date Reported</th>
+            <th>Fault Type</th>
+            <th>Reported By</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Resolved</th>
+            <th>Resolved By</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for fault in faults %}
+        <tr>
+            <td><strong>{{ fault.detector.label }}</strong></td>
+            <td>{{ fault.report_dt|date:"Y-m-d" }}</td>
+            <td>{{ fault.get_fault_type_display }}</td>
+            <td>{{ fault.reported_by|default:"N/A" }}</td>
+            <td>{{ fault.report_location.label }}</td>
+            <td>
+                <span class="status-badge {% if fault.status == 'CL' %}status-dc{% else %}status-of{% endif %}">
+                    {{ fault.get_status_display }}
+                </span>
+            </td>
+            <td>{{ fault.resolve_dt|date:"Y-m-d"|default:"N/A" }}</td>
+            <td>{{ fault.resolved_by|default:"N/A" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

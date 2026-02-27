@@ -1,0 +1,6 @@
+Django>=5.2
+djangorestframework
+django-filter
+PyJWT
+openpyxl
+WeasyPrint>=60.0

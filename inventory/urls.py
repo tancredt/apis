@@ -30,7 +30,13 @@ from .views import (
     CylinderVolumeView,
     CylinderStatusView,
     SensorStatusView,
-    SensorGasView
+    SensorGasView,
+    detectors_pdf,
+    sensors_pdf,
+    cylinders_pdf,
+    maintenance_pdf,
+    faults_pdf,
+    detector_detail_pdf,
 )
 from .views_auth import LoginView, LogoutView, CurrentUserView, CsrfTokenView
 from .views import change_detector_location, change_cylinder_location
@@ -73,4 +79,11 @@ urlpatterns = [
     path('csrf-token/', CsrfTokenView.as_view(), name='csrf-token'),
     path('change-detector-location/', change_detector_location, name='change-detector-location'),
     path('change-cylinder-location/', change_cylinder_location, name='change-cylinder-location'),
+    # PDF Reports
+    path('pdf/detectors/', detectors_pdf, name='pdf-detectors'),
+    path('pdf/sensors/', sensors_pdf, name='pdf-sensors'),
+    path('pdf/cylinders/', cylinders_pdf, name='pdf-cylinders'),
+    path('pdf/maintenance/', maintenance_pdf, name='pdf-maintenance'),
+    path('pdf/faults/', faults_pdf, name='pdf-faults'),
+    path('pdf/detectors/<int:detector_id>/', detector_detail_pdf, name='pdf-detector-detail'),
 ]

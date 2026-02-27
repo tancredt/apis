@@ -1,0 +1,54 @@
+{% extends "inventory/pdf/base.html" %}
+
+{% block title %}Maintenance Report - Hazmat Inventory{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Maintenance Report</h1>
+    <p>All maintenance records for detectors</p>
+</div>
+
+<div class="report-info">
+    <p><strong>Total Maintenance Records:</strong> {{ maintenances.count }}</p>
+    <p><strong>Scheduled:</strong> {{ maintenances|length_where:"status=SC" }} | 
+       <strong>Open:</strong> {{ maintenances|length_where:"status=OP" }} | 
+       <strong>Closed:</strong> {{ maintenances|length_where:"status=CL" }}</p>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Detector</th>
+            <th>Maintenance Type</th>
+            <th>Status</th>
+            <th>Date Due</th>
+            <th>Date Performed</th>
+            <th>Performed By</th>
+            <th>Tasks</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for maintenance in maintenances %}
+        <tr>
+            <td><strong>{{ maintenance.detector.label }}</strong></td>
+            <td>{{ maintenance.get_maintenance_type_display }}</td>
+            <td>
+                <span class="status-badge status-{{ maintenance.status|lower }}">
+                    {{ maintenance.get_status_display }}
+                </span>
+            </td>
+            <td class="{% if maintenance.date_due %}{% if maintenance.date_due <= today and not maintenance.date_performed %}date-overdue{% elif maintenance.date_due <= eight_weeks and not maintenance.date_performed %}date-warning{% else %}date-future{% endif %}{% endif %}">
+                {{ maintenance.date_due|date:"Y-m-d" }}
+            </td>
+            <td>{{ maintenance.date_performed|date:"Y-m-d"|default:"N/A" }}</td>
+            <td>{{ maintenance.performed_by|default:"N/A" }}</td>
+            <td>
+                {% for task in maintenance.tasks.all %}
+                    {{ task.get_task_type_display }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

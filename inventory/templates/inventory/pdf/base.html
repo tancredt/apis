@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Hazmat Inventory Report{% endblock %}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm;
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.4;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #2c3e50;
+        }
+        
+        .header h1 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 18pt;
+        }
+        
+        .header p {
+            margin: 5px 0 0;
+            color: #666;
+            font-size: 9pt;
+        }
+        
+        .report-info {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-size: 9pt;
+        }
+        
+        .report-info p {
+            margin: 3px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 9pt;
+        }
+        
+        th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px 6px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #1a252f;
+        }
+        
+        td {
+            padding: 6px;
+            border: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tr:nth-child(odd) {
+            background-color: #fff;
+        }
+        
+        .detail-section {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        
+        .detail-section h2 {
+            color: #2c3e50;
+            font-size: 14pt;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .detail-grid {
+            display: table;
+            width: 100%;
+        }
+        
+        .detail-row {
+            display: table-row;
+        }
+        
+        .detail-label {
+            display: table-cell;
+            width: 30%;
+            padding: 4px 0;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .detail-value {
+            display: table-cell;
+            width: 70%;
+            padding: 4px 0;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 8pt;
+            font-weight: 600;
+        }
+        
+        .status-op { background-color: #d4edda; color: #155724; }
+        .status-is { background-color: #cce5ff; color: #004085; }
+        .status-oo { background-color: #fff3cd; color: #856404; }
+        .status-of { background-color: #f8d7da; color: #721c24; }
+        .status-dc { background-color: #e2e3e5; color: #383d41; }
+        
+        .date-overdue { color: #dc3545; font-weight: bold; }
+        .date-warning { color: #fd7e14; font-weight: bold; }
+        .date-future { color: #007bff; }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 8pt;
+            color: #666;
+        }
+        
+        .no-break {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+    {% block content %}{% endblock %}
+    
+    <div class="footer">
+        <p>Generated on {% now "Y-m-d H:i:s" %} | Hazmat Inventory System</p>
+    </div>
+</body>
+</html>

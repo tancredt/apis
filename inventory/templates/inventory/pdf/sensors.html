@@ -1,0 +1,53 @@
+{% extends "inventory/pdf/base.html" %}
+
+{% block title %}Sensors Report - Hazmat Inventory{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Sensors Report</h1>
+    <p>Complete inventory of all gas sensors</p>
+</div>
+
+<div class="report-info">
+    <p><strong>Total Sensors:</strong> {{ sensors.count }}</p>
+    <p><strong>Operational:</strong> {{ sensors|length_where:"status=OP" }} | 
+       <strong>In Stock:</strong> {{ sensors|length_where:"status=IS" }} | 
+       <strong>On Order:</strong> {{ sensors|length_where:"status=OO" }} | 
+       <strong>Decommissioned:</strong> {{ sensors|length_where:"status=DC" }}</p>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Serial</th>
+            <th>Part Number</th>
+            <th>Gas Type</th>
+            <th>Detector</th>
+            <th>Status</th>
+            <th>Received</th>
+            <th>Warranty</th>
+            <th>Expiry</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sensor in sensors %}
+        <tr>
+            <td><strong>{{ sensor.serial|default:"N/A" }}</strong></td>
+            <td>{{ sensor.sensor_type.part_number }}</td>
+            <td>{{ sensor.sensor_type.get_sensorgas_display }}</td>
+            <td>{{ sensor.detector.label|default:"Not Assigned" }}</td>
+            <td>
+                <span class="status-badge status-{{ sensor.status|lower }}">
+                    {{ sensor.get_status_display }}
+                </span>
+            </td>
+            <td>{{ sensor.receive_date|date:"Y-m-d"|default:"N/A" }}</td>
+            <td>{{ sensor.warranty_date|date:"Y-m-d"|default:"N/A" }}</td>
+            <td class="{% if sensor.expiry_date %}{% if sensor.expiry_date <= today %}date-overdue{% elif sensor.expiry_date <= eight_weeks %}date-warning{% else %}date-future{% endif %}{% endif %}">
+                {{ sensor.expiry_date|date:"Y-m-d"|default:"N/A" }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

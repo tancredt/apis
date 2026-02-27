@@ -1,0 +1,51 @@
+{% extends "inventory/pdf/base.html" %}
+
+{% block title %}Detectors Report - Hazmat Inventory{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Detectors Report</h1>
+    <p>Complete inventory of all gas detectors</p>
+</div>
+
+<div class="report-info">
+    <p><strong>Total Detectors:</strong> {{ detectors.count }}</p>
+    <p><strong>Operational:</strong> {{ detectors|length_where:"status=OP" }} | 
+       <strong>In Stock:</strong> {{ detectors|length_where:"status=IS" }} | 
+       <strong>Offline:</strong> {{ detectors|length_where:"status=OF" }} | 
+       <strong>Decommissioned:</strong> {{ detectors|length_where:"status=DC" }}</p>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Label</th>
+            <th>Serial</th>
+            <th>Model</th>
+            <th>Type</th>
+            <th>Configuration</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Firmware</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for detector in detectors %}
+        <tr>
+            <td><strong>{{ detector.label }}</strong></td>
+            <td>{{ detector.serial }}</td>
+            <td>{{ detector.detector_model.label }}</td>
+            <td>{{ detector.detector_model.get_detector_type_display }}</td>
+            <td>{{ detector.configuration.label|default:"N/A" }}</td>
+            <td>{{ detector.location.label }}</td>
+            <td>
+                <span class="status-badge status-{{ detector.status|lower }}">
+                    {{ detector.get_status_display }}
+                </span>
+            </td>
+            <td>{{ detector.firmware|default:"N/A" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
