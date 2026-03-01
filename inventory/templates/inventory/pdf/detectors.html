@@ -9,13 +9,31 @@
     <p>Complete inventory of all gas detectors</p>
 </div>
 
+{% if filters.search or filters.status or filters.detector_model or filters.location or filters.configuration %}
 <div class="report-info">
+    <p><strong>Applied Filters:</strong>
+    {% if filters.search %}Search: {{ filters.search }}{% endif %}
+    {% if filters.status %} | Status: {{ filters.status }}{% endif %}
+    {% if filters.detector_model %} | Model: {{ filters.detector_model }}{% endif %}
+    {% if filters.location %} | Location: {{ filters.location }}{% endif %}
+    {% if filters.configuration %} | Configuration: {{ filters.configuration }}{% endif %}
+    {% if not filters.show_decommissioned %} | Excluding Decommissioned{% endif %}
+    </p>
     <p><strong>Total Detectors:</strong> {{ detectors.count }}</p>
-    <p><strong>Operational:</strong> {{ detectors|length_where:"status=OP" }} | 
-       <strong>In Stock:</strong> {{ detectors|length_where:"status=IS" }} | 
-       <strong>Offline:</strong> {{ detectors|length_where:"status=OF" }} | 
+    <p><strong>Operational:</strong> {{ detectors|length_where:"status=OP" }} |
+       <strong>In Stock:</strong> {{ detectors|length_where:"status=IS" }} |
+       <strong>Offline:</strong> {{ detectors|length_where:"status=OF" }} |
        <strong>Decommissioned:</strong> {{ detectors|length_where:"status=DC" }}</p>
 </div>
+{% else %}
+<div class="report-info">
+    <p><strong>Total Detectors:</strong> {{ detectors.count }}</p>
+    <p><strong>Operational:</strong> {{ detectors|length_where:"status=OP" }} |
+       <strong>In Stock:</strong> {{ detectors|length_where:"status=IS" }} |
+       <strong>Offline:</strong> {{ detectors|length_where:"status=OF" }} |
+       <strong>Decommissioned:</strong> {{ detectors|length_where:"status=DC" }}</p>
+</div>
+{% endif %}
 
 <table>
     <thead>

@@ -9,13 +9,31 @@
     <p>Complete inventory of calibration gas cylinders</p>
 </div>
 
+{% if filters.search or filters.status or filters.cylinder_type or filters.location or filters.expiry_date_lte %}
 <div class="report-info">
+    <p><strong>Applied Filters:</strong>
+    {% if filters.search %}Search: {{ filters.search }}{% endif %}
+    {% if filters.status %} | Status: {{ filters.status }}{% endif %}
+    {% if filters.cylinder_type %} | Cylinder Type: {{ filters.cylinder_type }}{% endif %}
+    {% if filters.location %} | Location: {{ filters.location }}{% endif %}
+    {% if filters.expiry_date_lte %} | Expires Before: {{ filters.expiry_date_lte }}{% endif %}
+    {% if not filters.show_empty %} | Excluding Empty{% endif %}
+    </p>
     <p><strong>Total Cylinders:</strong> {{ cylinders.count }}</p>
-    <p><strong>Operational:</strong> {{ cylinders|length_where:"status=OP" }} | 
-       <strong>In Stock:</strong> {{ cylinders|length_where:"status=IS" }} | 
-       <strong>On Order:</strong> {{ cylinders|length_where:"status=OO" }} | 
+    <p><strong>Operational:</strong> {{ cylinders|length_where:"status=OP" }} |
+       <strong>In Stock:</strong> {{ cylinders|length_where:"status=IS" }} |
+       <strong>On Order:</strong> {{ cylinders|length_where:"status=OO" }} |
        <strong>Empty:</strong> {{ cylinders|length_where:"status=MT" }}</p>
 </div>
+{% else %}
+<div class="report-info">
+    <p><strong>Total Cylinders:</strong> {{ cylinders.count }}</p>
+    <p><strong>Operational:</strong> {{ cylinders|length_where:"status=OP" }} |
+       <strong>In Stock:</strong> {{ cylinders|length_where:"status=IS" }} |
+       <strong>On Order:</strong> {{ cylinders|length_where:"status=OO" }} |
+       <strong>Empty:</strong> {{ cylinders|length_where:"status=MT" }}</p>
+</div>
+{% endif %}
 
 <table>
     <thead>

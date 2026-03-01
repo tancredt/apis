@@ -9,12 +9,28 @@
     <p>All maintenance records for detectors</p>
 </div>
 
+{% if filters.status or filters.maintenance_type or filters.detector or filters.date_due_lte %}
 <div class="report-info">
+    <p><strong>Applied Filters:</strong>
+    {% if filters.status %}Status: {{ filters.status }}{% endif %}
+    {% if filters.maintenance_type %} | Type: {{ filters.maintenance_type }}{% endif %}
+    {% if filters.detector %} | Detector: {{ filters.detector }}{% endif %}
+    {% if filters.date_due_lte %} | Due Before: {{ filters.date_due_lte }}{% endif %}
+    {% if not filters.show_complete %} | Excluding Closed{% endif %}
+    </p>
     <p><strong>Total Maintenance Records:</strong> {{ maintenances.count }}</p>
-    <p><strong>Scheduled:</strong> {{ maintenances|length_where:"status=SC" }} | 
-       <strong>Open:</strong> {{ maintenances|length_where:"status=OP" }} | 
+    <p><strong>Scheduled:</strong> {{ maintenances|length_where:"status=SC" }} |
+       <strong>Open:</strong> {{ maintenances|length_where:"status=OP" }} |
        <strong>Closed:</strong> {{ maintenances|length_where:"status=CL" }}</p>
 </div>
+{% else %}
+<div class="report-info">
+    <p><strong>Total Maintenance Records:</strong> {{ maintenances.count }}</p>
+    <p><strong>Scheduled:</strong> {{ maintenances|length_where:"status=SC" }} |
+       <strong>Open:</strong> {{ maintenances|length_where:"status=OP" }} |
+       <strong>Closed:</strong> {{ maintenances|length_where:"status=CL" }}</p>
+</div>
+{% endif %}
 
 <table>
     <thead>

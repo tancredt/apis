@@ -9,13 +9,31 @@
     <p>Complete inventory of all gas sensors</p>
 </div>
 
+{% if filters.search or filters.status or filters.sensor_type or filters.detector or filters.expiry_date_lte %}
 <div class="report-info">
+    <p><strong>Applied Filters:</strong>
+    {% if filters.search %}Search: {{ filters.search }}{% endif %}
+    {% if filters.status %} | Status: {{ filters.status }}{% endif %}
+    {% if filters.sensor_type %} | Sensor Type: {{ filters.sensor_type }}{% endif %}
+    {% if filters.detector %} | Detector: {{ filters.detector }}{% endif %}
+    {% if filters.expiry_date_lte %} | Expires Before: {{ filters.expiry_date_lte }}{% endif %}
+    {% if not filters.show_decommissioned %} | Excluding Decommissioned{% endif %}
+    </p>
     <p><strong>Total Sensors:</strong> {{ sensors.count }}</p>
-    <p><strong>Operational:</strong> {{ sensors|length_where:"status=OP" }} | 
-       <strong>In Stock:</strong> {{ sensors|length_where:"status=IS" }} | 
-       <strong>On Order:</strong> {{ sensors|length_where:"status=OO" }} | 
+    <p><strong>Operational:</strong> {{ sensors|length_where:"status=OP" }} |
+       <strong>In Stock:</strong> {{ sensors|length_where:"status=IS" }} |
+       <strong>On Order:</strong> {{ sensors|length_where:"status=OO" }} |
        <strong>Decommissioned:</strong> {{ sensors|length_where:"status=DC" }}</p>
 </div>
+{% else %}
+<div class="report-info">
+    <p><strong>Total Sensors:</strong> {{ sensors.count }}</p>
+    <p><strong>Operational:</strong> {{ sensors|length_where:"status=OP" }} |
+       <strong>In Stock:</strong> {{ sensors|length_where:"status=IS" }} |
+       <strong>On Order:</strong> {{ sensors|length_where:"status=OO" }} |
+       <strong>Decommissioned:</strong> {{ sensors|length_where:"status=DC" }}</p>
+</div>
+{% endif %}
 
 <table>
     <thead>

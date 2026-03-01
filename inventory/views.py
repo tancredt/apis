@@ -7,6 +7,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from datetime import timedelta
 from weasyprint import HTML
+from django.db import models
 
 from .models import (
     Location,
@@ -468,95 +469,251 @@ def get_date_context():
 
 
 def detectors_pdf(request):
-    """Generate PDF report of all detectors."""
+    """Generate PDF report of all detectors with optional filters."""
+    # Get filter parameters from request
+    search = request.GET.get('search', '')
+    status = request.GET.get('status', '')
+    detector_model = request.GET.get('detector_model', '')
+    location = request.GET.get('location', '')
+    configuration = request.GET.get('configuration', '')
+    show_decommissioned = request.GET.get('show_decommissioned', 'false').lower() == 'true'
+    
+    # Build queryset
     detectors = Detector.objects.select_related(
         'detector_model', 'location', 'configuration'
     ).order_by('label')
     
+    # Apply filters
+    if search:
+        detectors = detectors.filter(
+            models.Q(label__icontains=search) | models.Q(serial__icontains=search)
+        )
+    if status:
+        detectors = detectors.filter(status=status)
+    if detector_model:
+        detectors = detectors.filter(detector_model=detector_model)
+    if location:
+        detectors = detectors.filter(location=location)
+    if configuration:
+        detectors = detectors.filter(configuration=configuration)
+    if not show_decommissioned:
+        detectors = detectors.exclude(status='DC')
+
     context = {
         'detectors': detectors,
+        'filters': {
+            'search': search,
+            'status': status,
+            'detector_model': detector_model,
+            'location': location,
+            'configuration': configuration,
+            'show_decommissioned': show_decommissioned,
+        },
         **get_date_context()
     }
-    
+
     html_string = render_to_string('inventory/pdf/detectors.html', context)
     pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
-    
+
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="detectors.pdf"'
     return response
 
 
 def sensors_pdf(request):
-    """Generate PDF report of all sensors."""
+    """Generate PDF report of all sensors with optional filters."""
+    # Get filter parameters from request
+    search = request.GET.get('search', '')
+    status = request.GET.get('status', '')
+    sensor_type = request.GET.get('sensor_type', '')
+    detector = request.GET.get('detector', '')
+    expiry_date_lte = request.GET.get('expiry_date_lte', '')
+    show_decommissioned = request.GET.get('show_decommissioned', 'false').lower() == 'true'
+    
+    # Build queryset
     sensors = Sensor.objects.select_related(
         'sensor_type', 'detector'
     ).order_by('sensor_type__part_number', 'serial')
     
+    # Apply filters
+    if search:
+        sensors = sensors.filter(
+            models.Q(serial__icontains=search) | models.Q(sensor_type__part_number__icontains=search)
+        )
+    if status:
+        sensors = sensors.filter(status=status)
+    if sensor_type:
+        sensors = sensors.filter(sensor_type=sensor_type)
+    if detector:
+        sensors = sensors.filter(detector=detector)
+    if expiry_date_lte:
+        sensors = sensors.filter(expiry_date__lte=expiry_date_lte)
+    if not show_decommissioned:
+        sensors = sensors.exclude(status='DC')
+
     context = {
         'sensors': sensors,
+        'filters': {
+            'search': search,
+            'status': status,
+            'sensor_type': sensor_type,
+            'detector': detector,
+            'expiry_date_lte': expiry_date_lte,
+            'show_decommissioned': show_decommissioned,
+        },
         **get_date_context()
     }
-    
+
     html_string = render_to_string('inventory/pdf/sensors.html', context)
     pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
-    
+
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="sensors.pdf"'
     return response
 
 
 def cylinders_pdf(request):
-    """Generate PDF report of all calibration cylinders."""
+    """Generate PDF report of all calibration cylinders with optional filters."""
+    # Get filter parameters from request
+    search = request.GET.get('search', '')
+    status = request.GET.get('status', '')
+    cylinder_type = request.GET.get('cylinder_type', '')
+    location = request.GET.get('location', '')
+    expiry_date_lte = request.GET.get('expiry_date_lte', '')
+    show_empty = request.GET.get('show_empty', 'false').lower() == 'true'
+    
+    # Build queryset
     cylinders = Cylinder.objects.select_related(
         'cylinder_type', 'location', 'detector'
     ).order_by('cylinder_number')
     
+    # Apply filters
+    if search:
+        # Search by cylinder number (as string) or serial
+        if search.isdigit():
+            cylinders = cylinders.filter(cylinder_number=int(search))
+        cylinders = cylinders.filter(
+            models.Q(serial__icontains=search)
+        )
+    if status:
+        cylinders = cylinders.filter(status=status)
+    if cylinder_type:
+        cylinders = cylinders.filter(cylinder_type=cylinder_type)
+    if location:
+        cylinders = cylinders.filter(location=location)
+    if expiry_date_lte:
+        cylinders = cylinders.filter(expiry_date__lte=expiry_date_lte)
+    if not show_empty:
+        cylinders = cylinders.exclude(status='MT')
+
     context = {
         'cylinders': cylinders,
+        'filters': {
+            'search': search,
+            'status': status,
+            'cylinder_type': cylinder_type,
+            'location': location,
+            'expiry_date_lte': expiry_date_lte,
+            'show_empty': show_empty,
+        },
         **get_date_context()
     }
-    
+
     html_string = render_to_string('inventory/pdf/cylinders.html', context)
     pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
-    
+
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="cylinders.pdf"'
     return response
 
 
 def maintenance_pdf(request):
-    """Generate PDF report of all maintenance records."""
+    """Generate PDF report of all maintenance records with optional filters."""
+    # Get filter parameters from request
+    status = request.GET.get('status', '')
+    maintenance_type = request.GET.get('maintenance_type', '')
+    detector = request.GET.get('detector', '')
+    date_due_lte = request.GET.get('date_due_lte', '')
+    show_complete = request.GET.get('show_complete', 'false').lower() == 'true'
+    
+    # Build queryset
     maintenances = Maintenance.objects.select_related(
         'detector'
     ).prefetch_related('tasks').order_by('-date_due')
     
+    # Apply filters
+    if status:
+        maintenances = maintenances.filter(status=status)
+    if maintenance_type:
+        maintenances = maintenances.filter(maintenance_type=maintenance_type)
+    if detector:
+        maintenances = maintenances.filter(detector=detector)
+    if date_due_lte:
+        maintenances = maintenances.filter(date_due__lte=date_due_lte)
+    if not show_complete:
+        maintenances = maintenances.exclude(status='CL')
+
     context = {
         'maintenances': maintenances,
+        'filters': {
+            'status': status,
+            'maintenance_type': maintenance_type,
+            'detector': detector,
+            'date_due_lte': date_due_lte,
+            'show_complete': show_complete,
+        },
         **get_date_context()
     }
-    
+
     html_string = render_to_string('inventory/pdf/maintenance.html', context)
     pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
-    
+
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="maintenance.pdf"'
     return response
 
 
 def faults_pdf(request):
-    """Generate PDF report of all fault reports."""
+    """Generate PDF report of all fault reports with optional filters."""
+    # Get filter parameters from request
+    status = request.GET.get('status', '')
+    fault_type = request.GET.get('fault_type', '')
+    detector = request.GET.get('detector', '')
+    report_dt_lte = request.GET.get('report_dt_lte', '')
+    show_closed = request.GET.get('show_closed', 'false').lower() == 'true'
+    
+    # Build queryset
     faults = DetectorFault.objects.select_related(
         'detector', 'report_location'
     ).order_by('-report_dt')
     
+    # Apply filters
+    if status:
+        faults = faults.filter(status=status)
+    if fault_type:
+        faults = faults.filter(fault_type=fault_type)
+    if detector:
+        faults = faults.filter(detector=detector)
+    if report_dt_lte:
+        faults = faults.filter(report_dt__lte=report_dt_lte)
+    if not show_closed:
+        faults = faults.exclude(status='CL')
+
     context = {
         'faults': faults,
+        'filters': {
+            'status': status,
+            'fault_type': fault_type,
+            'detector': detector,
+            'report_dt_lte': report_dt_lte,
+            'show_closed': show_closed,
+        },
         **get_date_context()
     }
-    
+
     html_string = render_to_string('inventory/pdf/faults.html', context)
     pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
-    
+
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="faults.pdf"'
     return response
