@@ -9,7 +9,7 @@
     <p>Complete inventory of all gas sensors</p>
 </div>
 
-{% if filters.search or filters.status or filters.sensor_type or filters.detector or filters.expiry_date_lte %}
+{% if filters.search or filters.status or filters.sensor_type or filters.detector or filters.expiry_date_lte or filters.sort_key %}
 <div class="report-info">
     <p><strong>Applied Filters:</strong>
     {% if filters.search %}Search: {{ filters.search }}{% endif %}
@@ -18,6 +18,7 @@
     {% if filters.detector %} | Detector: {{ filters.detector }}{% endif %}
     {% if filters.expiry_date_lte %} | Expires Before: {{ filters.expiry_date_lte }}{% endif %}
     {% if not filters.show_decommissioned %} | Excluding Decommissioned{% endif %}
+    {% if filters.sort_key %} | Sorted by: {{ filters.sort_key }} ({{ filters.sort_direction }}){% endif %}
     </p>
     <p><strong>Total Sensors:</strong> {{ sensors.count }}</p>
     <p><strong>Operational:</strong> {{ sensors|length_where:"status=OP" }} |

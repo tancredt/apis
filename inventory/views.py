@@ -478,10 +478,31 @@ def detectors_pdf(request):
     configuration = request.GET.get('configuration', '')
     show_decommissioned = request.GET.get('show_decommissioned', 'false').lower() == 'true'
     
+    # Get sort parameters from request
+    sort_key = request.GET.get('sort_key', 'label')
+    sort_direction = request.GET.get('sort_direction', 'asc')
+    
+    # Map frontend sort keys to database fields
+    sort_field_map = {
+        'label': 'label',
+        'serial': 'serial',
+        'model': 'detector_model__label',
+        'location': 'location__label',
+        'status': 'status',
+        'configuration': 'configuration__label',
+        'firmware': 'firmware',
+        'purchase_date': 'purchase_date',
+    }
+    sort_field = sort_field_map.get(sort_key, 'label')
+    
+    # Apply sort direction
+    if sort_direction.lower() == 'desc':
+        sort_field = f'-{sort_field}'
+    
     # Build queryset
     detectors = Detector.objects.select_related(
         'detector_model', 'location', 'configuration'
-    ).order_by('label')
+    ).order_by(sort_field)
     
     # Apply filters
     if search:
@@ -508,6 +529,8 @@ def detectors_pdf(request):
             'location': location,
             'configuration': configuration,
             'show_decommissioned': show_decommissioned,
+            'sort_key': sort_key,
+            'sort_direction': sort_direction,
         },
         **get_date_context()
     }
@@ -530,10 +553,32 @@ def sensors_pdf(request):
     expiry_date_lte = request.GET.get('expiry_date_lte', '')
     show_decommissioned = request.GET.get('show_decommissioned', 'false').lower() == 'true'
     
+    # Get sort parameters from request
+    sort_key = request.GET.get('sort_key', 'serial')
+    sort_direction = request.GET.get('sort_direction', 'asc')
+    
+    # Map frontend sort keys to database fields
+    sort_field_map = {
+        'serial': 'serial',
+        'sensor_type': 'sensor_type__part_number',
+        'sensorgas': 'sensor_type__sensorgas',
+        'detector': 'detector__label',
+        'status': 'status',
+        'order_date': 'order_date',
+        'receive_date': 'receive_date',
+        'warranty_date': 'warranty_date',
+        'expiry_date': 'expiry_date',
+    }
+    sort_field = sort_field_map.get(sort_key, 'serial')
+    
+    # Apply sort direction
+    if sort_direction.lower() == 'desc':
+        sort_field = f'-{sort_field}'
+    
     # Build queryset
     sensors = Sensor.objects.select_related(
         'sensor_type', 'detector'
-    ).order_by('sensor_type__part_number', 'serial')
+    ).order_by(sort_field)
     
     # Apply filters
     if search:
@@ -560,6 +605,8 @@ def sensors_pdf(request):
             'detector': detector,
             'expiry_date_lte': expiry_date_lte,
             'show_decommissioned': show_decommissioned,
+            'sort_key': sort_key,
+            'sort_direction': sort_direction,
         },
         **get_date_context()
     }
@@ -582,10 +629,33 @@ def cylinders_pdf(request):
     expiry_date_lte = request.GET.get('expiry_date_lte', '')
     show_empty = request.GET.get('show_empty', 'false').lower() == 'true'
     
+    # Get sort parameters from request
+    sort_key = request.GET.get('sort_key', 'label')
+    sort_direction = request.GET.get('sort_direction', 'asc')
+    
+    # Map frontend sort keys to database fields
+    sort_field_map = {
+        'label': 'cylinder_number',
+        'serial': 'serial',
+        'cylinder_type': 'cylinder_type__part_number',
+        'supplier': 'cylinder_type__supplier',
+        'detector': 'detector__label',
+        'location': 'location__label',
+        'status': 'status',
+        'order_date': 'order_date',
+        'receive_date': 'receive_date',
+        'expiry_date': 'expiry_date',
+    }
+    sort_field = sort_field_map.get(sort_key, 'cylinder_number')
+    
+    # Apply sort direction
+    if sort_direction.lower() == 'desc':
+        sort_field = f'-{sort_field}'
+    
     # Build queryset
     cylinders = Cylinder.objects.select_related(
         'cylinder_type', 'location', 'detector'
-    ).order_by('cylinder_number')
+    ).order_by(sort_field)
     
     # Apply filters
     if search:
@@ -615,6 +685,8 @@ def cylinders_pdf(request):
             'location': location,
             'expiry_date_lte': expiry_date_lte,
             'show_empty': show_empty,
+            'sort_key': sort_key,
+            'sort_direction': sort_direction,
         },
         **get_date_context()
     }
@@ -636,10 +708,28 @@ def maintenance_pdf(request):
     date_due_lte = request.GET.get('date_due_lte', '')
     show_complete = request.GET.get('show_complete', 'false').lower() == 'true'
     
+    # Get sort parameters from request
+    sort_key = request.GET.get('sort_key', 'date_due')
+    sort_direction = request.GET.get('sort_direction', 'asc')
+    
+    # Map frontend sort keys to database fields
+    sort_field_map = {
+        'maintenance_type': 'maintenance_type',
+        'status': 'status',
+        'detector': 'detector__label',
+        'date_due': 'date_due',
+        'date_performed': 'date_performed',
+    }
+    sort_field = sort_field_map.get(sort_key, 'date_due')
+    
+    # Apply sort direction
+    if sort_direction.lower() == 'desc':
+        sort_field = f'-{sort_field}'
+    
     # Build queryset
     maintenances = Maintenance.objects.select_related(
         'detector'
-    ).prefetch_related('tasks').order_by('-date_due')
+    ).prefetch_related('tasks').order_by(sort_field)
     
     # Apply filters
     if status:
@@ -661,6 +751,8 @@ def maintenance_pdf(request):
             'detector': detector,
             'date_due_lte': date_due_lte,
             'show_complete': show_complete,
+            'sort_key': sort_key,
+            'sort_direction': sort_direction,
         },
         **get_date_context()
     }
@@ -682,10 +774,29 @@ def faults_pdf(request):
     report_dt_lte = request.GET.get('report_dt_lte', '')
     show_closed = request.GET.get('show_closed', 'false').lower() == 'true'
     
+    # Get sort parameters from request
+    sort_key = request.GET.get('sort_key', 'report_dt')
+    sort_direction = request.GET.get('sort_direction', 'desc')
+    
+    # Map frontend sort keys to database fields
+    sort_field_map = {
+        'detector': 'detector__label',
+        'fault_type': 'fault_type',
+        'status': 'status',
+        'report_dt': 'report_dt',
+        'report_location': 'report_location__label',
+        'resolve_dt': 'resolve_dt',
+    }
+    sort_field = sort_field_map.get(sort_key, 'report_dt')
+    
+    # Apply sort direction
+    if sort_direction.lower() == 'desc':
+        sort_field = f'-{sort_field}'
+    
     # Build queryset
     faults = DetectorFault.objects.select_related(
         'detector', 'report_location'
-    ).order_by('-report_dt')
+    ).order_by(sort_field)
     
     # Apply filters
     if status:
@@ -707,6 +818,8 @@ def faults_pdf(request):
             'detector': detector,
             'report_dt_lte': report_dt_lte,
             'show_closed': show_closed,
+            'sort_key': sort_key,
+            'sort_direction': sort_direction,
         },
         **get_date_context()
     }

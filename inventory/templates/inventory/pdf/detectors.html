@@ -9,7 +9,7 @@
     <p>Complete inventory of all gas detectors</p>
 </div>
 
-{% if filters.search or filters.status or filters.detector_model or filters.location or filters.configuration %}
+{% if filters.search or filters.status or filters.detector_model or filters.location or filters.configuration or filters.sort_key %}
 <div class="report-info">
     <p><strong>Applied Filters:</strong>
     {% if filters.search %}Search: {{ filters.search }}{% endif %}
@@ -18,6 +18,7 @@
     {% if filters.location %} | Location: {{ filters.location }}{% endif %}
     {% if filters.configuration %} | Configuration: {{ filters.configuration }}{% endif %}
     {% if not filters.show_decommissioned %} | Excluding Decommissioned{% endif %}
+    {% if filters.sort_key %} | Sorted by: {{ filters.sort_key }} ({{ filters.sort_direction }}){% endif %}
     </p>
     <p><strong>Total Detectors:</strong> {{ detectors.count }}</p>
     <p><strong>Operational:</strong> {{ detectors|length_where:"status=OP" }} |

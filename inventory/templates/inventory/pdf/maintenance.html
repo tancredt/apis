@@ -9,7 +9,7 @@
     <p>All maintenance records for detectors</p>
 </div>
 
-{% if filters.status or filters.maintenance_type or filters.detector or filters.date_due_lte %}
+{% if filters.status or filters.maintenance_type or filters.detector or filters.date_due_lte or filters.sort_key %}
 <div class="report-info">
     <p><strong>Applied Filters:</strong>
     {% if filters.status %}Status: {{ filters.status }}{% endif %}
@@ -17,6 +17,7 @@
     {% if filters.detector %} | Detector: {{ filters.detector }}{% endif %}
     {% if filters.date_due_lte %} | Due Before: {{ filters.date_due_lte }}{% endif %}
     {% if not filters.show_complete %} | Excluding Closed{% endif %}
+    {% if filters.sort_key %} | Sorted by: {{ filters.sort_key }} ({{ filters.sort_direction }}){% endif %}
     </p>
     <p><strong>Total Maintenance Records:</strong> {{ maintenances.count }}</p>
     <p><strong>Scheduled:</strong> {{ maintenances|length_where:"status=SC" }} |

@@ -9,7 +9,7 @@
     <p>Complete inventory of calibration gas cylinders</p>
 </div>
 
-{% if filters.search or filters.status or filters.cylinder_type or filters.location or filters.expiry_date_lte %}
+{% if filters.search or filters.status or filters.cylinder_type or filters.location or filters.expiry_date_lte or filters.sort_key %}
 <div class="report-info">
     <p><strong>Applied Filters:</strong>
     {% if filters.search %}Search: {{ filters.search }}{% endif %}
@@ -18,6 +18,7 @@
     {% if filters.location %} | Location: {{ filters.location }}{% endif %}
     {% if filters.expiry_date_lte %} | Expires Before: {{ filters.expiry_date_lte }}{% endif %}
     {% if not filters.show_empty %} | Excluding Empty{% endif %}
+    {% if filters.sort_key %} | Sorted by: {{ filters.sort_key }} ({{ filters.sort_direction }}){% endif %}
     </p>
     <p><strong>Total Cylinders:</strong> {{ cylinders.count }}</p>
     <p><strong>Operational:</strong> {{ cylinders|length_where:"status=OP" }} |

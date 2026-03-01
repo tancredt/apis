@@ -9,7 +9,7 @@
     <p>All detector fault reports</p>
 </div>
 
-{% if filters.status or filters.fault_type or filters.detector or filters.report_dt_lte %}
+{% if filters.status or filters.fault_type or filters.detector or filters.report_dt_lte or filters.sort_key %}
 <div class="report-info">
     <p><strong>Applied Filters:</strong>
     {% if filters.status %}Status: {{ filters.status }}{% endif %}
@@ -17,6 +17,7 @@
     {% if filters.detector %} | Detector: {{ filters.detector }}{% endif %}
     {% if filters.report_dt_lte %} | Reported Before: {{ filters.report_dt_lte }}{% endif %}
     {% if not filters.show_closed %} | Excluding Closed{% endif %}
+    {% if filters.sort_key %} | Sorted by: {{ filters.sort_key }} ({{ filters.sort_direction }}){% endif %}
     </p>
     <p><strong>Total Faults:</strong> {{ faults.count }}</p>
     <p><strong>Open:</strong> {{ faults|length_where:"status=OP" }} |
