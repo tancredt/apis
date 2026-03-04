@@ -1,4 +1,5 @@
 from django_filters import rest_framework as filters
+from django.db import models
 
 from .models import (
     Location,
@@ -23,7 +24,7 @@ class LocationFilter(filters.FilterSet):
 
     class Meta:
         model = Location
-        fields = []
+        fields = ['label', 'address']
 
 class DetectorModelFilter(filters.FilterSet):
     detector_type = filters.CharFilter(lookup_expr='iexact')
@@ -31,8 +32,8 @@ class DetectorModelFilter(filters.FilterSet):
 
     class Meta:
         model = DetectorModel
-        fields=[]
-        
+        fields = ['detector_type', 'model_name']
+
 class DetectorFilter(filters.FilterSet):
     label = filters.CharFilter(lookup_expr='icontains')
     serial = filters.CharFilter(lookup_expr='icontains')
@@ -43,10 +44,19 @@ class DetectorFilter(filters.FilterSet):
     detector_model__model_name = filters.CharFilter(lookup_expr='iexact')
     detector_model__detector_type = filters.CharFilter(lookup_expr='iexact')
     detector_model = filters.NumberFilter()
+    exclude_status = filters.CharFilter(field_name='status', lookup_expr='iexact', exclude=True)
+    search = filters.CharFilter(method='filter_search')
+
+    def filter_search(self, queryset, name, value):
+        # Search in label and serial
+        return queryset.filter(
+            models.Q(label__icontains=value) |
+            models.Q(serial__icontains=value)
+        )
 
     class Meta:
         model = Detector
-        fields = []
+        fields = ['search', 'status', 'location', 'detector_model', 'configuration__label', 'exclude_status']
 
 class DetectorFaultFilter(filters.FilterSet):
     detector = filters.NumberFilter()
@@ -55,22 +65,24 @@ class DetectorFaultFilter(filters.FilterSet):
     report_dt_lte = filters.DateFilter(field_name='report_dt', lookup_expr='lte')
     report_location__label = filters.CharFilter(lookup_expr='iexact')
     fault_type = filters.CharFilter(lookup_expr='iexact')
+    exclude_status = filters.CharFilter(field_name='status', lookup_expr='iexact', exclude=True)
 
     class Meta:
         model = DetectorFault
-        fields = []
-        
-   
+        fields = ['detector', 'detector__label', 'report_dt_gte', 'report_dt_lte', 'report_location__label', 'fault_type', 'exclude_status']
+
+
 class MaintenanceFilter(filters.FilterSet):
     maintenance_type = filters.CharFilter(lookup_expr='iexact')
     status = filters.CharFilter(lookup_expr='iexact')
     detector = filters.NumberFilter()
     detector__label = filters.CharFilter(lookup_expr='iexact')
     date_due_lte = filters.DateFilter(field_name='date_due', lookup_expr='lte')
+    exclude_status = filters.CharFilter(field_name='status', lookup_expr='iexact', exclude=True)
 
     class Meta:
         model = Maintenance
-        fields = []
+        fields = ['maintenance_type', 'status', 'detector', 'detector__label', 'date_due_lte', 'exclude_status']
 
 class MaintenanceTaskFilter(filters.FilterSet):
     maintenance = filters.NumberFilter()
@@ -84,15 +96,15 @@ class MaintenanceTaskFilter(filters.FilterSet):
 
     class Meta:
         model = MaintenanceTask
-        fields = []
+        fields = ['maintenance', 'task_type']
 
 class CylinderTypeFilter(filters.FilterSet):
     active = filters.BooleanFilter()
 
     class Meta:
         model = CylinderType
-        fields = []
-        
+        fields = ['active']
+
 class CylinderFilter(filters.FilterSet):
     cylinder_number = filters.NumberFilter()
     serial = filters.CharFilter(lookup_expr='icontains')
@@ -102,17 +114,25 @@ class CylinderFilter(filters.FilterSet):
     cylinder_type__part_number = filters.CharFilter(lookup_expr='icontains')
     expiry_date_lte = filters.DateFilter(field_name='expiry_date', lookup_expr='lte')
     expiry_date_gte = filters.DateFilter(field_name='expiry_date', lookup_expr='gte')
+    exclude_status = filters.CharFilter(field_name='status', lookup_expr='iexact', exclude=True)
+    search = filters.CharFilter(method='filter_search')
+
+    def filter_search(self, queryset, name, value):
+        # Search in serial
+        return queryset.filter(
+            models.Q(serial__icontains=value)
+        )
 
     class Meta:
         model = Cylinder
-        fields = []
-    
+        fields = ['search', 'serial', 'location', 'status', 'cylinder_type__part_number', 'expiry_date_lte', 'expiry_date_gte', 'exclude_status']
+
 class SensorTypeFilter(filters.FilterSet):
     active = filters.BooleanFilter()
     part_number = filters.CharFilter(lookup_expr='icontains')
     class Meta:
         model = SensorType
-        fields = []
+        fields = ['active', 'part_number']
 
 class SensorFilter(filters.FilterSet):
     serial = filters.CharFilter(lookup_expr='icontains')
@@ -125,9 +145,19 @@ class SensorFilter(filters.FilterSet):
     warranty_date_gte = filters.CharFilter(field_name='warranty_date', lookup_expr='gte')
     end_date_lte = filters.CharFilter(field_name='end_date', lookup_expr='lte')
     end_date_gte = filters.CharFilter(field_name='end_date', lookup_expr='gte')
+    exclude_status = filters.CharFilter(field_name='status', lookup_expr='iexact', exclude=True)
+    search = filters.CharFilter(method='filter_search')
+
+    def filter_search(self, queryset, name, value):
+        # Search in serial and sensor_type__part_number
+        return queryset.filter(
+            models.Q(serial__icontains=value) |
+            models.Q(sensor_type__part_number__icontains=value)
+        )
+
     class Meta:
         model = Sensor
-        fields = ["sensor_type"]
+        fields = ['search', 'serial', 'status', 'sensor_type__part_number', 'detector', 'detector__label', 'detector__serial', 'warranty_date_lte', 'warranty_date_gte', 'end_date_lte', 'end_date_gte', 'exclude_status']
 
 class SensorSlotFilter(filters.FilterSet):
     sensor_type__part_number = filters.CharFilter(lookup_expr='icontains')
@@ -136,8 +166,8 @@ class SensorSlotFilter(filters.FilterSet):
     detector__serial = filters.CharFilter(lookup_expr='icontains')
     class Meta:
         model = SensorSlot
-        fields = []
-    
+        fields = ['sensor_type__part_number', 'detector', 'detector__label', 'detector__serial']
+
 class DetectorModelConfigurationFilter(filters.FilterSet):
     detector_model__model_name = filters.CharFilter(lookup_expr='iexact')
     detector_model__detector_type = filters.CharFilter(lookup_expr='iexact')
@@ -145,7 +175,8 @@ class DetectorModelConfigurationFilter(filters.FilterSet):
 
     class Meta:
         model = DetectorModelConfiguration
-        fields = []
+        fields = ['detector_model__model_name', 'detector_model__detector_type', 'detector_model']
+
 class LocationDetectorSlotFilter(filters.FilterSet):
     class Meta:
         model = LocationDetectorSlot
@@ -160,4 +191,4 @@ class CylinderFaultFilter(filters.FilterSet):
 
     class Meta:
         model = CylinderFault
-        fields = []
+        fields = ['cylinder__label', 'report_dt_gte', 'report_dt_lte', 'report_location__label', 'fault_type']
