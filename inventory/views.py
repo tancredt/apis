@@ -860,7 +860,7 @@ def detector_detail_pdf(request, detector_id):
     
     html_string = render_to_string('inventory/pdf/detector_detail.html', context)
     pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
-    
+
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="detector_{detector.label}.pdf"'
     return response
