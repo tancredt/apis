@@ -202,7 +202,7 @@ class DetectorModel(models.Model):
         ordering = ["detector_type"]
 
     def __str__(self):
-        return f"{self.get_manufacturer_display()} {self.model_name} ({self.get_detector_type_display()})"
+        return f"{self.get_manufacturer_display()} {self.label} ({self.get_detector_type_display()})"
 
 #This is used to label the configuration of detector, eg "Blue MultiRAE"
 #The sensors_gases is a comma delimited string with sensor_gas names
@@ -213,7 +213,7 @@ class DetectorModelConfiguration(models.Model):
     sensor_gases = models.CharField(max_length=256, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.label} ({self.detector_model.model_name})"
+        return f"{self.label} ({self.detector_model.label})"
 
 class Detector(models.Model):
     label = models.CharField(max_length=16, unique=True)
@@ -257,7 +257,7 @@ class LocationDetectorSlot(models.Model):
     detector = models.ForeignKey(Detector, on_delete=models.PROTECT, null=True, related_name="detector_slots")
 
     def __str__(self):
-        return f"{self.location.label} - {self.detector_model.model_name} - {self.detector.label if self.detector else 'Unassigned'}"
+        return f"{self.location.label} - {self.detector_model.label} - {self.detector.label if self.detector else 'Unassigned'}"
 
 class DetectorFault(models.Model):
     detector = models.ForeignKey(Detector, on_delete=models.CASCADE, related_name="faults")
