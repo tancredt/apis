@@ -92,7 +92,6 @@ from .filters import (
     SensorSlotFilter,
 )
 
-from .permissions import FrvUserRestrictedPermission
 
 # Create your views here.
 ################---Choice Views---#################
@@ -210,77 +209,77 @@ class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = LocationFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 class DetectorModelViewSet(viewsets.ModelViewSet):
     serializer_class = DetectorModelSerializer
     queryset = DetectorModel.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DetectorModelFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 class DetectorViewSet(viewsets.ModelViewSet):
     serializer_class = DetectorSerializer
     queryset = Detector.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DetectorFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 class MaintenanceViewSet(viewsets.ModelViewSet):
     serializer_class = MaintenanceSerializer
     queryset = Maintenance.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = MaintenanceFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 class MaintenanceTaskViewSet(viewsets.ModelViewSet):
     serializer_class = MaintenanceTaskSerializer
     queryset = MaintenanceTask.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = MaintenanceTaskFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 class DetectorFaultViewSet(viewsets.ModelViewSet):
     serializer_class = DetectorFaultSerializer
     queryset = DetectorFault.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DetectorFaultFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 class CylinderTypeViewSet(viewsets.ModelViewSet):
     serializer_class = CylinderTypeSerializer
     queryset = CylinderType.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = CylinderTypeFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 class CylinderViewSet(viewsets.ModelViewSet):
     serializer_class = CylinderSerializer
     queryset = Cylinder.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = CylinderFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 class SensorTypeViewSet(viewsets.ModelViewSet):
     serializer_class = SensorTypeSerializer
     queryset = SensorType.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = SensorTypeFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 class SensorViewSet(viewsets.ModelViewSet):
     serializer_class = SensorSerializer
     queryset = Sensor.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = SensorFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 class SensorSlotViewSet(viewsets.ModelViewSet):
     serializer_class = SensorSlotSerializer
     queryset = SensorSlot.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = SensorSlotFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 
 from rest_framework.decorators import api_view, permission_classes
@@ -292,7 +291,7 @@ from .models import Detector, Cylinder, Location
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, FrvUserRestrictedPermission])
+@permission_classes([IsAuthenticated])
 def change_detector_location(request):
     # Check if the user is 'frvuser' and only allow specific functionality
     if request.user.username == 'frvuser':
@@ -366,7 +365,7 @@ def change_detector_location(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, FrvUserRestrictedPermission])
+@permission_classes([IsAuthenticated])
 def change_cylinder_location(request):
     # Check if the user is 'frvuser' and only allow specific functionality
     if request.user.username == 'frvuser':
@@ -442,21 +441,21 @@ class DetectorModelConfigurationViewSet(viewsets.ModelViewSet):
     queryset = DetectorModelConfiguration.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DetectorModelConfigurationFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 class LocationDetectorSlotViewSet(viewsets.ModelViewSet):
     serializer_class = LocationDetectorSlotSerializer
     queryset = LocationDetectorSlot.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = LocationDetectorSlotFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 class CylinderFaultViewSet(viewsets.ModelViewSet):
     serializer_class = CylinderFaultSerializer
     queryset = CylinderFault.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = CylinderFaultFilter
-    permission_classes = [IsAuthenticated, FrvUserRestrictedPermission]  # Require auth and restrict access for frvuser
+    permission_classes = [IsAuthenticated]  # Require auth and restrict access for frvuser
 
 
 # ============== PDF Report Views ==============
