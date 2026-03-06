@@ -285,13 +285,13 @@ class SensorSlotViewSet(viewsets.ModelViewSet):
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .models import Detector, Cylinder, Location
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, DjangoModelPermissions])
+@permission_classes([IsAuthenticated])
 def change_detector_location(request):
     # Check if the user is 'frvuser' and only allow specific functionality
     if request.user.username == 'frvuser':
@@ -332,7 +332,7 @@ def change_detector_location(request):
             return Response({
                 'error': 'Permission denied'
             }, status=status.HTTP_403_FORBIDDEN)
-            
+
         serializer = ChangeDetectorLocationSerializer(data=request.data)
         if serializer.is_valid():
             detector_id = serializer.validated_data['detector_id']
@@ -365,7 +365,7 @@ def change_detector_location(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, DjangoModelPermissions])
+@permission_classes([IsAuthenticated])
 def change_cylinder_location(request):
     # Check if the user is 'frvuser' and only allow specific functionality
     if request.user.username == 'frvuser':
@@ -405,7 +405,7 @@ def change_cylinder_location(request):
             return Response({
                 'error': 'Permission denied'
             }, status=status.HTTP_403_FORBIDDEN)
-            
+
         serializer = ChangeCylinderLocationSerializer(data=request.data)
         if serializer.is_valid():
             cylinder_id = serializer.validated_data['cylinder_id']
