@@ -103,6 +103,7 @@ class CylinderFaultStatus(models.TextChoices):
 class DetectorFaultType(models.TextChoices):
     BUMPFAIL = "BF", "Failed Bump"
     SENSORFAIL = "SF", "Sensor Fail"
+    CALIBRATIONEXPIRED = "CE", "Calibration Expired"
     DISPLAYSERROR = "DE", "Displays Error"
     WONTSTART = "WS", "Will not turn on"
     DAMAGEDDISPLAY = "DD", "Damaged Display"

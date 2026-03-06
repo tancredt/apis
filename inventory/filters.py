@@ -137,6 +137,7 @@ class SensorTypeFilter(filters.FilterSet):
 class SensorFilter(filters.FilterSet):
     serial = filters.CharFilter(lookup_expr='icontains')
     status = filters.CharFilter(lookup_expr='iexact')
+    sensor_type = filters.NumberFilter()
     sensor_type__part_number = filters.CharFilter(lookup_expr='icontains')
     detector = filters.NumberFilter()
     detector__label = filters.CharFilter(lookup_expr='iexact')
@@ -157,7 +158,7 @@ class SensorFilter(filters.FilterSet):
 
     class Meta:
         model = Sensor
-        fields = ['search', 'serial', 'status', 'sensor_type__part_number', 'detector', 'detector__label', 'detector__serial', 'warranty_date_lte', 'warranty_date_gte', 'end_date_lte', 'end_date_gte', 'exclude_status']
+        fields = ['search', 'serial', 'status', 'sensor_type', 'sensor_type__part_number', 'detector', 'detector__label', 'detector__serial', 'warranty_date_lte', 'warranty_date_gte', 'end_date_lte', 'end_date_gte', 'exclude_status']
 
 class SensorSlotFilter(filters.FilterSet):
     sensor_type__part_number = filters.CharFilter(lookup_expr='icontains')
