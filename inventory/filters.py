@@ -41,7 +41,7 @@ class DetectorFilter(filters.FilterSet):
     configuration__label = filters.CharFilter(lookup_expr='iexact')
     location__label = filters.CharFilter(lookup_expr='iexact')
     location = filters.NumberFilter()
-    detector_model__model_name = filters.CharFilter(lookup_expr='iexact')
+    detector_model__label = filters.CharFilter(lookup_expr='iexact')
     detector_model__detector_type = filters.CharFilter(lookup_expr='iexact')
     detector_model = filters.NumberFilter()
     exclude_status = filters.CharFilter(field_name='status', lookup_expr='iexact', exclude=True)
@@ -170,13 +170,13 @@ class SensorSlotFilter(filters.FilterSet):
         fields = ['sensor_type__part_number', 'detector', 'detector__label', 'detector__serial']
 
 class DetectorModelConfigurationFilter(filters.FilterSet):
-    detector_model__model_name = filters.CharFilter(lookup_expr='iexact')
+    detector_model__label = filters.CharFilter(lookup_expr='iexact')
     detector_model__detector_type = filters.CharFilter(lookup_expr='iexact')
     detector_model = filters.NumberFilter()
 
     class Meta:
         model = DetectorModelConfiguration
-        fields = ['detector_model__model_name', 'detector_model__detector_type', 'detector_model']
+        fields = ['detector_model__label', 'detector_model__detector_type', 'detector_model']
 
 class LocationDetectorSlotFilter(filters.FilterSet):
     class Meta:
