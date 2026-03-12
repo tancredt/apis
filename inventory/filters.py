@@ -28,11 +28,11 @@ class LocationFilter(filters.FilterSet):
 
 class DetectorModelFilter(filters.FilterSet):
     detector_type = filters.CharFilter(lookup_expr='iexact')
-    model_name = filters.CharFilter(lookup_expr='iexact')
+    label = filters.CharFilter(lookup_expr='icontains')
 
     class Meta:
         model = DetectorModel
-        fields = ['detector_type', 'model_name']
+        fields = ['detector_type', 'label']
 
 class DetectorFilter(filters.FilterSet):
     label = filters.CharFilter(lookup_expr='icontains')
