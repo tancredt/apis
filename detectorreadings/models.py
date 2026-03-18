@@ -48,6 +48,7 @@ class ReadingType(models.Model):
  threshold1 = models.FloatField(null=True)
  threshold2 = models.FloatField(null=True)
  threshold3 = models.FloatField(null=True)
+ #translate data header format from safety suite responder
  responder_header = models.CharField(max_length=16, null=True, blank=True)
     
 class Reading(models.Model):
@@ -55,3 +56,5 @@ class Reading(models.Model):
  reading_type = models.ForeignKey(ReadingType, on_delete=models.CASCADE)
  value = models.FloatField()
  dt = models.DateTime()
+ detector_stie = models.ForeignKey(DetectorSite, on_delete=models.CASCADE)
+ 
