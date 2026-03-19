@@ -2,21 +2,28 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
-from django_filters import rest_framework as filters
-from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Q, Avg, Max, Min, Count
 
-from .models import Incident, DetectorSite, ReadingType, Reading, Validation, Gas, Units
+from .models import Incident, DetectorSite, ReadingType, Reading, DetectorValidation, DetectorSiteValidation, Gas, Units
 from .serializers import (
     IncidentSerializer,
     DetectorSiteSerializer,
     ReadingTypeSerializer,
     ReadingSerializer,
     ReadingListSerializer,
-    ValidationSerializer,
+    DetectorValidationSerializer,
+    DetectorSiteValidationSerializer,
     GasChoiceSerializer,
     UnitsChoiceSerializer,
+)
+from .filters import (
+    IncidentFilter,
+    DetectorSiteFilter,
+    ReadingTypeFilter,
+    ReadingFilter,
+    DetectorValidationFilter,
+    DetectorSiteValidationFilter,
 )
 
 
@@ -43,75 +50,6 @@ class UnitsView(APIView):
         return Response(serializer.data)
 
 
-# ============== Filter Classes ==============
-class IncidentFilter(filters.FilterSet):
-    label = filters.CharFilter(lookup_expr='icontains')
-    suburb = filters.CharFilter(lookup_expr='icontains')
-    start_date_gte = filters.DateFilter(field_name='start_date', lookup_expr='gte')
-    start_date_lte = filters.DateFilter(field_name='start_date', lookup_expr='lte')
-
-    class Meta:
-        model = Incident
-        fields = ['label', 'suburb', 'start_date_gte', 'start_date_lte']
-
-
-class DetectorSiteFilter(filters.FilterSet):
-    incident = filters.NumberFilter()
-    label = filters.CharFilter(lookup_expr='iexact')
-
-    class Meta:
-        model = DetectorSite
-        fields = ['incident', 'label']
-
-
-class ReadingTypeFilter(filters.FilterSet):
-    gas = filters.CharFilter(lookup_expr='iexact')
-    units = filters.CharFilter(lookup_expr='iexact')
-
-    class Meta:
-        model = ReadingType
-        fields = ['gas', 'units']
-
-
-class ReadingFilter(filters.FilterSet):
-    detector = filters.NumberFilter()
-    detector__label = filters.CharFilter(lookup_expr='iexact')
-    detector__serial = filters.CharFilter(lookup_expr='icontains')
-    reading_type = filters.NumberFilter()
-    reading_type__gas = filters.CharFilter(lookup_expr='iexact')
-    reading_type__units = filters.CharFilter(lookup_expr='iexact')
-    dt_gte = filters.DateTimeFilter(field_name='dt', lookup_expr='gte')
-    dt_lte = filters.DateTimeFilter(field_name='dt', lookup_expr='lte')
-    is_valid = filters.BooleanFilter()
-    detector_site = filters.NumberFilter()
-    search = filters.CharFilter(method='filter_search')
-
-    def filter_search(self, queryset, name, value):
-        return queryset.filter(
-            Q(detector__label__icontains=value) |
-            Q(detector__serial__icontains=value)
-        )
-
-    class Meta:
-        model = Reading
-        fields = [
-            'detector', 'detector__label', 'detector__serial',
-            'reading_type', 'reading_type__gas', 'reading_type__units',
-            'dt_gte', 'dt_lte', 'is_valid', 'detector_site', 'search'
-        ]
-
-
-class ValidationFilter(filters.FilterSet):
-    start_dt_gte = filters.DateTimeFilter(field_name='start_dt', lookup_expr='gte')
-    start_dt_lte = filters.DateTimeFilter(field_name='start_dt', lookup_expr='lte')
-    end_dt_gte = filters.DateTimeFilter(field_name='end_dt', lookup_expr='gte')
-    end_dt_lte = filters.DateTimeFilter(field_name='end_dt', lookup_expr='lte')
-
-    class Meta:
-        model = Validation
-        fields = ['start_dt_gte', 'start_dt_lte', 'end_dt_gte', 'end_dt_lte']
-
-
 # ============== Main API Views ==============
 class IncidentListCreateView(APIView):
     """List all incidents or create a new incident."""
@@ -119,22 +57,22 @@ class IncidentListCreateView(APIView):
 
     def get(self, request):
         queryset = Incident.objects.all()
-        
+
         # Apply filters
         filter_set = IncidentFilter(request.GET, queryset=queryset)
         incidents = filter_set.qs
-        
+
         # Sorting
         sort_key = request.GET.get('sort_key', 'start_date')
         sort_direction = request.GET.get('sort_direction', 'desc')
-        
+
         valid_sort_fields = ['label', 'start_date', 'suburb']
         if sort_key in valid_sort_fields:
             if sort_direction.lower() == 'desc':
                 incidents = incidents.order_by(f'-{sort_key}')
             else:
                 incidents = incidents.order_by(sort_key)
-        
+
         serializer = IncidentSerializer(incidents, many=True)
         return Response(serializer.data)
 
@@ -197,22 +135,22 @@ class DetectorSiteListCreateView(APIView):
 
     def get(self, request):
         queryset = DetectorSite.objects.select_related('incident').all()
-        
+
         # Apply filters
         filter_set = DetectorSiteFilter(request.GET, queryset=queryset)
         sites = filter_set.qs
-        
+
         # Sorting
         sort_key = request.GET.get('sort_key', 'label')
         sort_direction = request.GET.get('sort_direction', 'asc')
-        
+
         valid_sort_fields = ['label', 'incident']
         if sort_key in valid_sort_fields:
             if sort_direction.lower() == 'desc':
                 sites = sites.order_by(f'-{sort_key}')
             else:
                 sites = sites.order_by(sort_key)
-        
+
         serializer = DetectorSiteSerializer(sites, many=True)
         return Response(serializer.data)
 
@@ -275,11 +213,11 @@ class ReadingTypeListCreateView(APIView):
 
     def get(self, request):
         queryset = ReadingType.objects.all()
-        
+
         # Apply filters
         filter_set = ReadingTypeFilter(request.GET, queryset=queryset)
         reading_types = filter_set.qs
-        
+
         serializer = ReadingTypeSerializer(reading_types, many=True)
         return Response(serializer.data)
 
@@ -344,22 +282,22 @@ class ReadingListCreateView(APIView):
         queryset = Reading.objects.select_related(
             'detector', 'reading_type', 'detector_site'
         ).all()
-        
+
         # Apply filters
         filter_set = ReadingFilter(request.GET, queryset=queryset)
         readings = filter_set.qs
-        
+
         # Sorting
         sort_key = request.GET.get('sort_key', 'dt')
         sort_direction = request.GET.get('sort_direction', 'desc')
-        
+
         valid_sort_fields = ['dt', 'value', 'detector__label', 'reading_type__gas', 'is_valid']
         if sort_key in valid_sort_fields:
             if sort_direction.lower() == 'desc':
                 readings = readings.order_by(f'-{sort_key}')
             else:
                 readings = readings.order_by(sort_key)
-        
+
         # Use list serializer for detailed output
         serializer = ReadingListSerializer(readings, many=True)
         return Response(serializer.data)
@@ -428,9 +366,9 @@ class ReadingStatsView(APIView):
         gas = request.GET.get('gas')
         start_dt = request.GET.get('start_dt')
         end_dt = request.GET.get('end_dt')
-        
+
         queryset = Reading.objects.filter(is_valid=True)
-        
+
         if detector:
             queryset = queryset.filter(detector_id=detector)
         if gas:
@@ -439,7 +377,7 @@ class ReadingStatsView(APIView):
             queryset = queryset.filter(dt__gte=start_dt)
         if end_dt:
             queryset = queryset.filter(dt__lte=end_dt)
-        
+
         if not queryset.exists():
             return Response({
                 'count': 0,
@@ -448,16 +386,16 @@ class ReadingStatsView(APIView):
                 'max': None,
                 'latest': None
             })
-        
+
         stats = queryset.aggregate(
             count=Count('id'),
             average=Avg('value'),
             min=Min('value'),
             max=Max('value')
         )
-        
+
         latest_reading = queryset.order_by('-dt').first()
-        
+
         return Response({
             'count': stats['count'],
             'average': stats['average'],
@@ -467,61 +405,62 @@ class ReadingStatsView(APIView):
         })
 
 
-class ValidationListCreateView(APIView):
-    """List all validations or create a new validation."""
+# ============== Detector Validation Views ==============
+class DetectorValidationListCreateView(APIView):
+    """List all detector validations or create a new detector validation."""
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def get(self, request):
-        queryset = Validation.objects.all()
-        
+        queryset = DetectorValidation.objects.select_related('detector').all()
+
         # Apply filters
-        filter_set = ValidationFilter(request.GET, queryset=queryset)
+        filter_set = DetectorValidationFilter(request.GET, queryset=queryset)
         validations = filter_set.qs
-        
+
         # Sorting
         sort_key = request.GET.get('sort_key', 'start_dt')
         sort_direction = request.GET.get('sort_direction', 'desc')
-        
-        valid_sort_fields = ['start_dt', 'end_dt', 'reason']
+
+        valid_sort_fields = ['start_dt', 'end_dt', 'reason', 'detector__label']
         if sort_key in valid_sort_fields:
             if sort_direction.lower() == 'desc':
                 validations = validations.order_by(f'-{sort_key}')
             else:
                 validations = validations.order_by(sort_key)
-        
-        serializer = ValidationSerializer(validations, many=True)
+
+        serializer = DetectorValidationSerializer(validations, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = ValidationSerializer(data=request.data)
+        serializer = DetectorValidationSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ValidationDetailView(APIView):
-    """Retrieve, update, or delete a single validation."""
+class DetectorValidationDetailView(APIView):
+    """Retrieve, update, or delete a single detector validation."""
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def get_object(self, pk):
         try:
-            return Validation.objects.get(pk=pk)
-        except Validation.DoesNotExist:
+            return DetectorValidation.objects.get(pk=pk)
+        except DetectorValidation.DoesNotExist:
             return None
 
     def get(self, request, pk):
         validation = self.get_object(pk)
         if validation is None:
-            return Response({'error': 'Validation not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ValidationSerializer(validation)
+            return Response({'error': 'Detector validation not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = DetectorValidationSerializer(validation)
         return Response(serializer.data)
 
     def put(self, request, pk):
         validation = self.get_object(pk)
         if validation is None:
-            return Response({'error': 'Validation not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ValidationSerializer(validation, data=request.data)
+            return Response({'error': 'Detector validation not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = DetectorValidationSerializer(validation, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -530,8 +469,8 @@ class ValidationDetailView(APIView):
     def patch(self, request, pk):
         validation = self.get_object(pk)
         if validation is None:
-            return Response({'error': 'Validation not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ValidationSerializer(validation, data=request.data, partial=True)
+            return Response({'error': 'Detector validation not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = DetectorValidationSerializer(validation, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -540,26 +479,85 @@ class ValidationDetailView(APIView):
     def delete(self, request, pk):
         validation = self.get_object(pk)
         if validation is None:
-            return Response({'error': 'Validation not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Detector validation not found'}, status=status.HTTP_404_NOT_FOUND)
         validation.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ActiveValidationView(APIView):
-    """Get currently active validation (now is within start_dt and end_dt)."""
-    permission_classes = [IsAuthenticated]
+# ============== Detector Site Validation Views ==============
+class DetectorSiteValidationListCreateView(APIView):
+    """List all detector site validations or create a new detector site validation."""
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def get(self, request):
-        now = timezone.now()
-        validation = Validation.objects.filter(
-            start_dt__lte=now,
-            end_dt__gte=now
-        ).order_by('-start_dt').first()
-        
+        queryset = DetectorSiteValidation.objects.select_related('detector_site').all()
+
+        # Apply filters
+        filter_set = DetectorSiteValidationFilter(request.GET, queryset=queryset)
+        validations = filter_set.qs
+
+        # Sorting
+        sort_key = request.GET.get('sort_key', 'start_dt')
+        sort_direction = request.GET.get('sort_direction', 'desc')
+
+        valid_sort_fields = ['start_dt', 'end_dt', 'reason', 'detector_site__label']
+        if sort_key in valid_sort_fields:
+            if sort_direction.lower() == 'desc':
+                validations = validations.order_by(f'-{sort_key}')
+            else:
+                validations = validations.order_by(sort_key)
+
+        serializer = DetectorSiteValidationSerializer(validations, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = DetectorSiteValidationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DetectorSiteValidationDetailView(APIView):
+    """Retrieve, update, or delete a single detector site validation."""
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
+
+    def get_object(self, pk):
+        try:
+            return DetectorSiteValidation.objects.get(pk=pk)
+        except DetectorSiteValidation.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        validation = self.get_object(pk)
         if validation is None:
-            return Response({'active': False, 'validation': None})
-        
-        return Response({
-            'active': True,
-            'validation': ValidationSerializer(validation).data
-        })
+            return Response({'error': 'Detector site validation not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = DetectorSiteValidationSerializer(validation)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        validation = self.get_object(pk)
+        if validation is None:
+            return Response({'error': 'Detector site validation not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = DetectorSiteValidationSerializer(validation, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        validation = self.get_object(pk)
+        if validation is None:
+            return Response({'error': 'Detector site validation not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = DetectorSiteValidationSerializer(validation, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        validation = self.get_object(pk)
+        if validation is None:
+            return Response({'error': 'Detector site validation not found'}, status=status.HTTP_404_NOT_FOUND)
+        validation.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

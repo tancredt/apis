@@ -11,9 +11,10 @@ from .views import (
     ReadingListCreateView,
     ReadingDetailView,
     ReadingStatsView,
-    ValidationListCreateView,
-    ValidationDetailView,
-    ActiveValidationView,
+    DetectorValidationListCreateView,
+    DetectorValidationDetailView,
+    DetectorSiteValidationListCreateView,
+    DetectorSiteValidationDetailView,
 )
 
 urlpatterns = [
@@ -38,8 +39,11 @@ urlpatterns = [
     path('readings/<int:pk>/', ReadingDetailView.as_view(), name='reading-detail'),
     path('readings/stats/', ReadingStatsView.as_view(), name='reading-stats'),
     
-    # Validation endpoints
-    path('validations/', ValidationListCreateView.as_view(), name='validation-list-create'),
-    path('validations/<int:pk>/', ValidationDetailView.as_view(), name='validation-detail'),
-    path('validations/active/', ActiveValidationView.as_view(), name='validation-active'),
+    # Detector Validation endpoints
+    path('detector-validations/', DetectorValidationListCreateView.as_view(), name='detectorvalidation-list-create'),
+    path('detector-validations/<int:pk>/', DetectorValidationDetailView.as_view(), name='detectorvalidation-detail'),
+    
+    # Detector Site Validation endpoints
+    path('detector-site-validations/', DetectorSiteValidationListCreateView.as_view(), name='detectorsitevalidation-list-create'),
+    path('detector-site-validations/<int:pk>/', DetectorSiteValidationDetailView.as_view(), name='detectorsitevalidation-detail'),
 ]

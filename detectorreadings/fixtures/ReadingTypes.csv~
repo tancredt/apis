@@ -1,0 +1,30 @@
+class Gas(models.TextChoices):
+    CO = "CO", "CO"
+    H2S = "HS", "H2S"
+    LEL = "LE", "LEL"
+    O2 = "O2", "O2"
+    VOC = "VO", "VOC"
+    HCN = "HC", "HCN"
+    CL2 = "CL", "Cl2"
+    PH3 = "PH", "PH3"
+    SO2 = "SO", "SO2"
+    NO2 = "NO", "NO2"
+    CO2 = "C2", "CO2"
+    NH3 = "NH", "NH3"
+    #ethylene oxide
+    ETO = "ET", "ETO"
+
+class Units(models.TextChoices):
+    PPM = "PM", "ppm"
+    PPB = "PB", "ppb"
+    VFV = "VV", "%v/v"
+    VLE = "VL", "%LEL"
+    MGM = "MM", "mg/m3"
+    MIGM = "MI", "microgram/m3"
+
+gas,units,threshold1,threshold2,threshold3,responder_header
+"CO","ppm",15.0,30.0,300.0,"CO(ppm)"
+"H2S","ppm",2.0,30.0,,"H2S(ppm)"
+"VOC","ppm",,,,"Custom1(ppm)"
+"LEL","%LEL",5.0,10.0,,"LEL(%LEL)"
+"O2","%v/v",16.5,23.5,"O2(%)"

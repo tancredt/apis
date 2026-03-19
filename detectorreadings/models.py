@@ -78,9 +78,20 @@ class Reading(models.Model):
     def __str__(self):
         return f"{self.detector.label} - {self.get_reading_type_display()} - {self.value} @ {self.dt}"
 
-class Validation(models.Model):
+class DetectorValidation(models.Model):
     start_dt = models.DateTimeField()
-    end_dt = models.DateTimeField()
+    end_dt = models.DateTimeField(null=True)
+    detector = models.ForeignKey(Detector, on_delete=models.CASCADE)
+    reason = models.CharField(max_length=256)
+
+    def __str__(self):
+        return f"{self.reason} ({self.start_dt} - {self.end_dt})"
+
+
+class DetectorSiteValidation(models.Model):
+    start_dt = models.DateTimeField()
+    end_dt = models.DateTimeField(null=True)
+    detector_site = models.ForeignKey(DetectorSite, on_delete=models.CASCADE)
     reason = models.CharField(max_length=256)
 
     def __str__(self):

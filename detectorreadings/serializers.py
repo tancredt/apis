@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Gas, Units, Incident, DetectorSite, ReadingType, Reading, Validation
+from .models import Gas, Units, Incident, DetectorSite, ReadingType, Reading, DetectorValidation, DetectorSiteValidation
 
 
 ###################---Choice Serializers---###################
@@ -101,12 +101,34 @@ class ReadingListSerializer(serializers.ModelSerializer):
         ]
 
 
-class ValidationSerializer(serializers.ModelSerializer):
+class DetectorValidationSerializer(serializers.ModelSerializer):
     start_dt = serializers.DateTimeField()
-    end_dt = serializers.DateTimeField()
+    end_dt = serializers.DateTimeField(allow_null=True, required=False)
 
     class Meta:
-        model = Validation
+        model = DetectorValidation
+        fields = "__all__"
+        read_only_fields = []
+
+    def validate(self, attrs):
+        start_dt = attrs.get('start_dt')
+        end_dt = attrs.get('end_dt')
+
+        if start_dt and end_dt:
+            if end_dt <= start_dt:
+                raise serializers.ValidationError({
+                    'end_dt': ['End date/time must be after start date/time.']
+                })
+
+        return attrs
+
+
+class DetectorSiteValidationSerializer(serializers.ModelSerializer):
+    start_dt = serializers.DateTimeField()
+    end_dt = serializers.DateTimeField(allow_null=True, required=False)
+
+    class Meta:
+        model = DetectorSiteValidation
         fields = "__all__"
         read_only_fields = []
 
