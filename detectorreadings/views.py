@@ -1,9 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
-from datetime import timedelta
-from django.db.models import Q, Avg, Max, Min, Count
+from django.db.models import Q
 
 from .models import Incident, DetectorSite, ReadingType, Reading, DetectorValidation, DetectorSiteValidation, Gas, Units
 from .serializers import (
@@ -30,7 +29,7 @@ from .filters import (
 # ============== Choice Views ==============
 class GasView(APIView):
     """Return list of available gas choices."""
-    permission_classes = [IsAuthenticated]
+    # No permission classes - matches inventory/views.py choice views
 
     def get(self, request):
         choices = Gas.choices
@@ -41,7 +40,7 @@ class GasView(APIView):
 
 class UnitsView(APIView):
     """Return list of available units choices."""
-    permission_classes = [IsAuthenticated]
+    # No permission classes - matches inventory/views.py choice views
 
     def get(self, request):
         choices = Units.choices
@@ -50,514 +49,265 @@ class UnitsView(APIView):
         return Response(serializer.data)
 
 
-# ============== Main API Views ==============
-class IncidentListCreateView(APIView):
-    """List all incidents or create a new incident."""
+# ============== Main ViewSets ==============
+class IncidentViewSet(viewsets.ModelViewSet):
+    """ViewSet for Incident CRUD operations."""
+    serializer_class = IncidentSerializer
+    queryset = Incident.objects.all()
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    filterset_fields = ['label', 'suburb', 'start_date']
 
-    def get(self, request):
+    def get_queryset(self):
         queryset = Incident.objects.all()
-
-        # Apply filters
-        filter_set = IncidentFilter(request.GET, queryset=queryset)
-        incidents = filter_set.qs
-
+        
+        # Apply filtering
+        label = self.request.query_params.get('label', None)
+        suburb = self.request.query_params.get('suburb', None)
+        start_date_gte = self.request.query_params.get('start_date_gte', None)
+        start_date_lte = self.request.query_params.get('start_date_lte', None)
+        
+        if label:
+            queryset = queryset.filter(label__icontains=label)
+        if suburb:
+            queryset = queryset.filter(suburb__icontains=suburb)
+        if start_date_gte:
+            queryset = queryset.filter(start_date__gte=start_date_gte)
+        if start_date_lte:
+            queryset = queryset.filter(start_date__lte=start_date_lte)
+        
         # Sorting
-        sort_key = request.GET.get('sort_key', 'start_date')
-        sort_direction = request.GET.get('sort_direction', 'desc')
-
+        sort_key = self.request.query_params.get('sort_key', 'start_date')
+        sort_direction = self.request.query_params.get('sort_direction', 'desc')
+        
         valid_sort_fields = ['label', 'start_date', 'suburb']
         if sort_key in valid_sort_fields:
             if sort_direction.lower() == 'desc':
-                incidents = incidents.order_by(f'-{sort_key}')
+                queryset = queryset.order_by(f'-{sort_key}')
             else:
-                incidents = incidents.order_by(sort_key)
-
-        serializer = IncidentSerializer(incidents, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = IncidentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                queryset = queryset.order_by(sort_key)
+        
+        return queryset
 
 
-class IncidentDetailView(APIView):
-    """Retrieve, update, or delete a single incident."""
+class DetectorSiteViewSet(viewsets.ModelViewSet):
+    """ViewSet for DetectorSite CRUD operations."""
+    serializer_class = DetectorSiteSerializer
+    queryset = DetectorSite.objects.all()
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    filterset_fields = ['incident', 'label']
 
-    def get_object(self, pk):
-        try:
-            return Incident.objects.get(pk=pk)
-        except Incident.DoesNotExist:
-            return None
-
-    def get(self, request, pk):
-        incident = self.get_object(pk)
-        if incident is None:
-            return Response({'error': 'Incident not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = IncidentSerializer(incident)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        incident = self.get_object(pk)
-        if incident is None:
-            return Response({'error': 'Incident not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = IncidentSerializer(incident, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk):
-        incident = self.get_object(pk)
-        if incident is None:
-            return Response({'error': 'Incident not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = IncidentSerializer(incident, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        incident = self.get_object(pk)
-        if incident is None:
-            return Response({'error': 'Incident not found'}, status=status.HTTP_404_NOT_FOUND)
-        incident.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class DetectorSiteListCreateView(APIView):
-    """List all detector sites or create a new detector site."""
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
-
-    def get(self, request):
+    def get_queryset(self):
         queryset = DetectorSite.objects.select_related('incident').all()
-
-        # Apply filters
-        filter_set = DetectorSiteFilter(request.GET, queryset=queryset)
-        sites = filter_set.qs
-
+        
+        # Apply filtering
+        incident = self.request.query_params.get('incident', None)
+        label = self.request.query_params.get('label', None)
+        
+        if incident:
+            queryset = queryset.filter(incident_id=incident)
+        if label:
+            queryset = queryset.filter(label__iexact=label)
+        
         # Sorting
-        sort_key = request.GET.get('sort_key', 'label')
-        sort_direction = request.GET.get('sort_direction', 'asc')
-
+        sort_key = self.request.query_params.get('sort_key', 'label')
+        sort_direction = self.request.query_params.get('sort_direction', 'asc')
+        
         valid_sort_fields = ['label', 'incident']
         if sort_key in valid_sort_fields:
             if sort_direction.lower() == 'desc':
-                sites = sites.order_by(f'-{sort_key}')
+                queryset = queryset.order_by(f'-{sort_key}')
             else:
-                sites = sites.order_by(sort_key)
-
-        serializer = DetectorSiteSerializer(sites, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = DetectorSiteSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                queryset = queryset.order_by(sort_key)
+        
+        return queryset
 
 
-class DetectorSiteDetailView(APIView):
-    """Retrieve, update, or delete a single detector site."""
+class ReadingTypeViewSet(viewsets.ModelViewSet):
+    """ViewSet for ReadingType CRUD operations."""
+    serializer_class = ReadingTypeSerializer
+    queryset = ReadingType.objects.all()
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    filterset_fields = ['gas', 'units']
 
-    def get_object(self, pk):
-        try:
-            return DetectorSite.objects.get(pk=pk)
-        except DetectorSite.DoesNotExist:
-            return None
-
-    def get(self, request, pk):
-        site = self.get_object(pk)
-        if site is None:
-            return Response({'error': 'Detector site not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = DetectorSiteSerializer(site)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        site = self.get_object(pk)
-        if site is None:
-            return Response({'error': 'Detector site not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = DetectorSiteSerializer(site, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk):
-        site = self.get_object(pk)
-        if site is None:
-            return Response({'error': 'Detector site not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = DetectorSiteSerializer(site, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        site = self.get_object(pk)
-        if site is None:
-            return Response({'error': 'Detector site not found'}, status=status.HTTP_404_NOT_FOUND)
-        site.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class ReadingTypeListCreateView(APIView):
-    """List all reading types or create a new reading type."""
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
-
-    def get(self, request):
+    def get_queryset(self):
         queryset = ReadingType.objects.all()
-
-        # Apply filters
-        filter_set = ReadingTypeFilter(request.GET, queryset=queryset)
-        reading_types = filter_set.qs
-
-        serializer = ReadingTypeSerializer(reading_types, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = ReadingTypeSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Apply filtering
+        gas = self.request.query_params.get('gas', None)
+        units = self.request.query_params.get('units', None)
+        
+        if gas:
+            queryset = queryset.filter(gas=gas)
+        if units:
+            queryset = queryset.filter(units=units)
+        
+        return queryset
 
 
-class ReadingTypeDetailView(APIView):
-    """Retrieve, update, or delete a single reading type."""
+class ReadingViewSet(viewsets.ModelViewSet):
+    """ViewSet for Reading CRUD operations."""
+    serializer_class = ReadingSerializer
+    queryset = Reading.objects.all()
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    filterset_fields = ['detector', 'reading_type', 'is_valid']
 
-    def get_object(self, pk):
-        try:
-            return ReadingType.objects.get(pk=pk)
-        except ReadingType.DoesNotExist:
-            return None
-
-    def get(self, request, pk):
-        reading_type = self.get_object(pk)
-        if reading_type is None:
-            return Response({'error': 'Reading type not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ReadingTypeSerializer(reading_type)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        reading_type = self.get_object(pk)
-        if reading_type is None:
-            return Response({'error': 'Reading type not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ReadingTypeSerializer(reading_type, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk):
-        reading_type = self.get_object(pk)
-        if reading_type is None:
-            return Response({'error': 'Reading type not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ReadingTypeSerializer(reading_type, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        reading_type = self.get_object(pk)
-        if reading_type is None:
-            return Response({'error': 'Reading type not found'}, status=status.HTTP_404_NOT_FOUND)
-        reading_type.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class ReadingListCreateView(APIView):
-    """List all readings or create a new reading."""
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
-
-    def get(self, request):
+    def get_queryset(self):
         queryset = Reading.objects.select_related(
             'detector', 'reading_type', 'detector_site'
         ).all()
-
-        # Apply filters
-        filter_set = ReadingFilter(request.GET, queryset=queryset)
-        readings = filter_set.qs
-
+        
+        # Apply filtering
+        detector = self.request.query_params.get('detector', None)
+        detector_label = self.request.query_params.get('detector__label', None)
+        detector_serial = self.request.query_params.get('detector__serial', None)
+        reading_type = self.request.query_params.get('reading_type', None)
+        reading_type_gas = self.request.query_params.get('reading_type__gas', None)
+        reading_type_units = self.request.query_params.get('reading_type__units', None)
+        dt_gte = self.request.query_params.get('dt_gte', None)
+        dt_lte = self.request.query_params.get('dt_lte', None)
+        is_valid = self.request.query_params.get('is_valid', None)
+        detector_site = self.request.query_params.get('detector_site', None)
+        search = self.request.query_params.get('search', None)
+        
+        if detector:
+            queryset = queryset.filter(detector_id=detector)
+        if detector_label:
+            queryset = queryset.filter(detector__label__iexact=detector_label)
+        if detector_serial:
+            queryset = queryset.filter(detector__serial__icontains=detector_serial)
+        if reading_type:
+            queryset = queryset.filter(reading_type_id=reading_type)
+        if reading_type_gas:
+            queryset = queryset.filter(reading_type__gas=reading_type_gas)
+        if reading_type_units:
+            queryset = queryset.filter(reading_type__units=reading_type_units)
+        if dt_gte:
+            queryset = queryset.filter(dt__gte=dt_gte)
+        if dt_lte:
+            queryset = queryset.filter(dt__lte=dt_lte)
+        if is_valid is not None:
+            queryset = queryset.filter(is_valid=is_valid.lower() == 'true')
+        if detector_site:
+            queryset = queryset.filter(detector_site_id=detector_site)
+        if search:
+            queryset = queryset.filter(
+                Q(detector__label__icontains=search) |
+                Q(detector__serial__icontains=search)
+            )
+        
         # Sorting
-        sort_key = request.GET.get('sort_key', 'dt')
-        sort_direction = request.GET.get('sort_direction', 'desc')
-
+        sort_key = self.request.query_params.get('sort_key', 'dt')
+        sort_direction = self.request.query_params.get('sort_direction', 'desc')
+        
         valid_sort_fields = ['dt', 'value', 'detector__label', 'reading_type__gas', 'is_valid']
         if sort_key in valid_sort_fields:
             if sort_direction.lower() == 'desc':
-                readings = readings.order_by(f'-{sort_key}')
+                queryset = queryset.order_by(f'-{sort_key}')
             else:
-                readings = readings.order_by(sort_key)
+                queryset = queryset.order_by(sort_key)
+        
+        return queryset
 
-        # Use list serializer for detailed output
-        serializer = ReadingListSerializer(readings, many=True)
+    def list(self, request, *args, **kwargs):
+        """Override list to use ReadingListSerializer for detailed output."""
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = ReadingListSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def post(self, request):
-        serializer = ReadingSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-class ReadingDetailView(APIView):
-    """Retrieve, update, or delete a single reading."""
+# ============== Detector Validation ViewSets ==============
+class DetectorValidationViewSet(viewsets.ModelViewSet):
+    """ViewSet for DetectorValidation CRUD operations."""
+    serializer_class = DetectorValidationSerializer
+    queryset = DetectorValidation.objects.all()
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    filterset_fields = ['detector', 'reason']
 
-    def get_object(self, pk):
-        try:
-            return Reading.objects.select_related(
-                'detector', 'reading_type', 'detector_site'
-            ).get(pk=pk)
-        except Reading.DoesNotExist:
-            return None
-
-    def get(self, request, pk):
-        reading = self.get_object(pk)
-        if reading is None:
-            return Response({'error': 'Reading not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ReadingSerializer(reading)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        reading = self.get_object(pk)
-        if reading is None:
-            return Response({'error': 'Reading not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ReadingSerializer(reading, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk):
-        reading = self.get_object(pk)
-        if reading is None:
-            return Response({'error': 'Reading not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ReadingSerializer(reading, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        reading = self.get_object(pk)
-        if reading is None:
-            return Response({'error': 'Reading not found'}, status=status.HTTP_404_NOT_FOUND)
-        reading.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class ReadingStatsView(APIView):
-    """Get statistics for readings within a time range."""
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        detector = request.GET.get('detector')
-        gas = request.GET.get('gas')
-        start_dt = request.GET.get('start_dt')
-        end_dt = request.GET.get('end_dt')
-
-        queryset = Reading.objects.filter(is_valid=True)
-
+    def get_queryset(self):
+        queryset = DetectorValidation.objects.select_related('detector').all()
+        
+        # Apply filtering
+        detector = self.request.query_params.get('detector', None)
+        detector_label = self.request.query_params.get('detector__label', None)
+        start_dt_gte = self.request.query_params.get('start_dt_gte', None)
+        start_dt_lte = self.request.query_params.get('start_dt_lte', None)
+        end_dt_gte = self.request.query_params.get('end_dt_gte', None)
+        end_dt_lte = self.request.query_params.get('end_dt_lte', None)
+        reason = self.request.query_params.get('reason', None)
+        
         if detector:
             queryset = queryset.filter(detector_id=detector)
-        if gas:
-            queryset = queryset.filter(reading_type__gas=gas)
-        if start_dt:
-            queryset = queryset.filter(dt__gte=start_dt)
-        if end_dt:
-            queryset = queryset.filter(dt__lte=end_dt)
-
-        if not queryset.exists():
-            return Response({
-                'count': 0,
-                'average': None,
-                'min': None,
-                'max': None,
-                'latest': None
-            })
-
-        stats = queryset.aggregate(
-            count=Count('id'),
-            average=Avg('value'),
-            min=Min('value'),
-            max=Max('value')
-        )
-
-        latest_reading = queryset.order_by('-dt').first()
-
-        return Response({
-            'count': stats['count'],
-            'average': stats['average'],
-            'min': stats['min'],
-            'max': stats['max'],
-            'latest': ReadingSerializer(latest_reading).data if latest_reading else None
-        })
-
-
-# ============== Detector Validation Views ==============
-class DetectorValidationListCreateView(APIView):
-    """List all detector validations or create a new detector validation."""
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
-
-    def get(self, request):
-        queryset = DetectorValidation.objects.select_related('detector').all()
-
-        # Apply filters
-        filter_set = DetectorValidationFilter(request.GET, queryset=queryset)
-        validations = filter_set.qs
-
+        if detector_label:
+            queryset = queryset.filter(detector__label__iexact=detector_label)
+        if start_dt_gte:
+            queryset = queryset.filter(start_dt__gte=start_dt_gte)
+        if start_dt_lte:
+            queryset = queryset.filter(start_dt__lte=start_dt_lte)
+        if end_dt_gte:
+            queryset = queryset.filter(end_dt__gte=end_dt_gte)
+        if end_dt_lte:
+            queryset = queryset.filter(end_dt__lte=end_dt_lte)
+        if reason:
+            queryset = queryset.filter(reason__icontains=reason)
+        
         # Sorting
-        sort_key = request.GET.get('sort_key', 'start_dt')
-        sort_direction = request.GET.get('sort_direction', 'desc')
-
+        sort_key = self.request.query_params.get('sort_key', 'start_dt')
+        sort_direction = self.request.query_params.get('sort_direction', 'desc')
+        
         valid_sort_fields = ['start_dt', 'end_dt', 'reason', 'detector__label']
         if sort_key in valid_sort_fields:
             if sort_direction.lower() == 'desc':
-                validations = validations.order_by(f'-{sort_key}')
+                queryset = queryset.order_by(f'-{sort_key}')
             else:
-                validations = validations.order_by(sort_key)
-
-        serializer = DetectorValidationSerializer(validations, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = DetectorValidationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                queryset = queryset.order_by(sort_key)
+        
+        return queryset
 
 
-class DetectorValidationDetailView(APIView):
-    """Retrieve, update, or delete a single detector validation."""
+# ============== Detector Site Validation ViewSets ==============
+class DetectorSiteValidationViewSet(viewsets.ModelViewSet):
+    """ViewSet for DetectorSiteValidation CRUD operations."""
+    serializer_class = DetectorSiteValidationSerializer
+    queryset = DetectorSiteValidation.objects.all()
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    filterset_fields = ['detector_site', 'reason']
 
-    def get_object(self, pk):
-        try:
-            return DetectorValidation.objects.get(pk=pk)
-        except DetectorValidation.DoesNotExist:
-            return None
-
-    def get(self, request, pk):
-        validation = self.get_object(pk)
-        if validation is None:
-            return Response({'error': 'Detector validation not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = DetectorValidationSerializer(validation)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        validation = self.get_object(pk)
-        if validation is None:
-            return Response({'error': 'Detector validation not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = DetectorValidationSerializer(validation, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk):
-        validation = self.get_object(pk)
-        if validation is None:
-            return Response({'error': 'Detector validation not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = DetectorValidationSerializer(validation, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        validation = self.get_object(pk)
-        if validation is None:
-            return Response({'error': 'Detector validation not found'}, status=status.HTTP_404_NOT_FOUND)
-        validation.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-# ============== Detector Site Validation Views ==============
-class DetectorSiteValidationListCreateView(APIView):
-    """List all detector site validations or create a new detector site validation."""
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
-
-    def get(self, request):
+    def get_queryset(self):
         queryset = DetectorSiteValidation.objects.select_related('detector_site').all()
-
-        # Apply filters
-        filter_set = DetectorSiteValidationFilter(request.GET, queryset=queryset)
-        validations = filter_set.qs
-
+        
+        # Apply filtering
+        detector_site = self.request.query_params.get('detector_site', None)
+        detector_site_label = self.request.query_params.get('detector_site__label', None)
+        start_dt_gte = self.request.query_params.get('start_dt_gte', None)
+        start_dt_lte = self.request.query_params.get('start_dt_lte', None)
+        end_dt_gte = self.request.query_params.get('end_dt_gte', None)
+        end_dt_lte = self.request.query_params.get('end_dt_lte', None)
+        reason = self.request.query_params.get('reason', None)
+        
+        if detector_site:
+            queryset = queryset.filter(detector_site_id=detector_site)
+        if detector_site_label:
+            queryset = queryset.filter(detector_site__label__iexact=detector_site_label)
+        if start_dt_gte:
+            queryset = queryset.filter(start_dt__gte=start_dt_gte)
+        if start_dt_lte:
+            queryset = queryset.filter(start_dt__lte=start_dt_lte)
+        if end_dt_gte:
+            queryset = queryset.filter(end_dt__gte=end_dt_gte)
+        if end_dt_lte:
+            queryset = queryset.filter(end_dt__lte=end_dt_lte)
+        if reason:
+            queryset = queryset.filter(reason__icontains=reason)
+        
         # Sorting
-        sort_key = request.GET.get('sort_key', 'start_dt')
-        sort_direction = request.GET.get('sort_direction', 'desc')
-
+        sort_key = self.request.query_params.get('sort_key', 'start_dt')
+        sort_direction = self.request.query_params.get('sort_direction', 'desc')
+        
         valid_sort_fields = ['start_dt', 'end_dt', 'reason', 'detector_site__label']
         if sort_key in valid_sort_fields:
             if sort_direction.lower() == 'desc':
-                validations = validations.order_by(f'-{sort_key}')
+                queryset = queryset.order_by(f'-{sort_key}')
             else:
-                validations = validations.order_by(sort_key)
-
-        serializer = DetectorSiteValidationSerializer(validations, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = DetectorSiteValidationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class DetectorSiteValidationDetailView(APIView):
-    """Retrieve, update, or delete a single detector site validation."""
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
-
-    def get_object(self, pk):
-        try:
-            return DetectorSiteValidation.objects.get(pk=pk)
-        except DetectorSiteValidation.DoesNotExist:
-            return None
-
-    def get(self, request, pk):
-        validation = self.get_object(pk)
-        if validation is None:
-            return Response({'error': 'Detector site validation not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = DetectorSiteValidationSerializer(validation)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        validation = self.get_object(pk)
-        if validation is None:
-            return Response({'error': 'Detector site validation not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = DetectorSiteValidationSerializer(validation, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk):
-        validation = self.get_object(pk)
-        if validation is None:
-            return Response({'error': 'Detector site validation not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = DetectorSiteValidationSerializer(validation, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        validation = self.get_object(pk)
-        if validation is None:
-            return Response({'error': 'Detector site validation not found'}, status=status.HTTP_404_NOT_FOUND)
-        validation.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+                queryset = queryset.order_by(sort_key)
+        
+        return queryset

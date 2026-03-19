@@ -3,4 +3,4 @@ gas,units,threshold1,threshold2,threshold3,responder_header
 "H2S","ppm",2.0,30.0,,"H2S(ppm)"
 "VOC","ppm",,,,"Custom1(ppm)"
 "LEL","%LEL",5.0,10.0,,"LEL(%LEL)"
-"O2","%v/v",16.5,23.5,"O2(%)"
+"O2","%v/v",16.5,23.5,,"O2(%)"
