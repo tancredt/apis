@@ -174,10 +174,24 @@ class MaintenanceSerializer(serializers.ModelSerializer):
     date_performed = serializers.DateField(allow_null=True, required=False)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
+    detector_model = serializers.SerializerMethodField()
+    detector_label = serializers.SerializerMethodField()
 
     class Meta:
         model = Maintenance
-        fields = ['id', "maintenance_type", "status", "detector", "date_due", "date_performed", "performed_by", "notes", "created_at", "updated_at"]
+        fields = ['id', "maintenance_type", "status", "detector", "detector_label", "detector_model", "date_due", "date_performed", "performed_by", "notes", "created_at", "updated_at"]
+
+    def get_detector_model(self, obj):
+        # Get the detector's model through the detector relationship
+        if obj.detector:
+            return obj.detector.detector_model_id
+        return None
+
+    def get_detector_label(self, obj):
+        # Get the detector's label through the detector relationship
+        if obj.detector:
+            return obj.detector.label
+        return None
 
 class MaintenanceTaskSerializer(serializers.ModelSerializer):
     class Meta:

@@ -77,12 +77,13 @@ class MaintenanceFilter(filters.FilterSet):
     status = filters.CharFilter(lookup_expr='iexact')
     detector = filters.NumberFilter()
     detector__label = filters.CharFilter(lookup_expr='iexact')
+    detector__detector_model = filters.NumberFilter()
     date_due_lte = filters.DateFilter(field_name='date_due', lookup_expr='lte')
     exclude_status = filters.CharFilter(field_name='status', lookup_expr='iexact', exclude=True)
 
     class Meta:
         model = Maintenance
-        fields = ['maintenance_type', 'status', 'detector', 'detector__label', 'date_due_lte', 'exclude_status']
+        fields = ['maintenance_type', 'status', 'detector', 'detector__label', 'detector__detector_model', 'date_due_lte', 'exclude_status']
 
 class MaintenanceTaskFilter(filters.FilterSet):
     maintenance = filters.NumberFilter()
