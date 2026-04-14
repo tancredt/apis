@@ -432,7 +432,7 @@ class Sensor(models.Model):
 class SensorSlot(models.Model):
     detector = models.ForeignKey(Detector, on_delete=models.PROTECT)
     #sensor_type = models.ForeignKey(SensorType, on_delete=models.PROTECT)
-    sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, null=True)
+    sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, null=True, blank=True)
     sensorgas = models.CharField(max_length=2, choices=SensorGas.choices)
 
     def __str__(self):
