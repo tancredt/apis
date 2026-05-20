@@ -1,6 +1,9 @@
-apis/__pycache__/
+__pycache__/
+*.pyc
+*#
 db.sqlite3
-inventory/__pycache__/
+backups/
 inventory/migrations/
-inventory/management/__pycache__/
-inventory/management/commands/__pycache__/
+inventory/fixtures/
+detectorreadings/migrations/
+detectorreadings/fixtures/
