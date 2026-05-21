@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'inventory',
-    'detectorreadings'
 ]
 
 MIDDLEWARE = [
